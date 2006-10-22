@@ -1,2 +1,11 @@
+2006-10-13	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 0.02.
+	* decode_mimewords: Fix bug about defult charset.
+	* Supports Perl 5.005 or later.
+	Unicode/multibyte handling will be enabled on Perl 5.8.1 or later.
+	* Added test cases for encode_mimewords (only for singlebyte).
+
 2006-10-11	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
 	* Release 0.01; Initial CPAN upload.

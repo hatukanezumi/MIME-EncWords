@@ -1,6 +1,6 @@
 
 package MIME::EncWords;
-use v5.8;
+use 5.005;
 
 =head1 NAME
 
@@ -96,9 +96,19 @@ Exporter::export_ok_tags(qw(all));
 
 ### Other modules:
 use Carp;
-use Encode;
 use MIME::Base64;
 use MIME::Charset qw(:trans);
+
+my @ENCODE_SUBS = qw(FB_CROAK decode encode from_to is_utf8 resolve_alias);
+if (MIME::Charset::USE_ENCODE) {
+    eval "use ".MIME::Charset::USE_ENCODE." \@ENCODE_SUBS;";
+} else {
+    require MIME::Charset::_Compat;
+    for my $sub (@ENCODE_SUBS) {
+        no strict "refs";
+        *{$sub} = \&{"MIME::Charset::_Compat::$sub"};
+    }
+}
 
 #------------------------------
 #
@@ -107,12 +117,13 @@ use MIME::Charset qw(:trans);
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "0.01";
+$VERSION = "0.02";
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
-my $NONPRINT = qr{[^\x20-\x7E]}; # Improvement: Unicode support.
-my $UNSAFE = qr{[^\x01-\x7E]};
+my $PRINTABLE = "\\x21-\\x7E";
+my $NONPRINT = qr{[^$PRINTABLE]}; # Improvement: Unicode support.
+my $UNSAFE = qr{[^\x01-\x20$PRINTABLE]};
 
 ### Max line length:
 my $MAXLINELEN = 76;
@@ -195,6 +206,22 @@ Any arguments past the ENCODED string are taken to define a hash of options:
 
 =over 4
 
+=item Charset
+
+B<Improvement by this module>:
+Name of character set by which data elements in scalar context
+will be converted.
+If this option is specified as special value C<"_UNICODE_">,
+returned value will be Unicode string.
+
+When Unicode/multibyte support is disabled
+(see L<MIME::Charset/USE_ENCODE>),
+this option will not have any effects.
+
+B<Note>:
+This feature is still information-lossy, I<except> when C<"_UNICODE_"> is
+specified.
+
 =item Field
 
 Name of the mail field this string came from.  I<Currently ignored.>
@@ -203,13 +230,13 @@ Name of the mail field this string came from.  I<Currently ignored.>
 
 B<Improvement by this module>:
 Adjacent encoded-words with same charset will be concatenated
-(if that charset is supported by Encode) to handle multibyte sequences
-safely.
+to handle multibyte sequences safely.
 
 B<Change by this module>:
 Malformed base64 encoded-words will be kept encoded.
+In this case $@ will be set.
 
-B<NOTE>:
+B<Compatibility with MIME::Words>:
 Whitespaces surrounding unencoded data will not be stripped.
 
 =cut
@@ -217,6 +244,7 @@ Whitespaces surrounding unencoded data will not be stripped.
 sub decode_mimewords {
     my $encstr = shift;
     my %params = @_;
+    my $cset = $params{"Charset"};
     my @tokens;
     $@ = '';           ### error-return
 
@@ -252,7 +280,7 @@ sub decode_mimewords {
 
 	    if (scalar(@tokens) and
 		lc($charset) eq lc(${$tokens[-1]}[1]) and
-		Encode::resolve_alias($charset)) { # Concat words if possible.
+		resolve_alias($charset)) { # Concat words if possible.
 		${$tokens[-1]}[0] .= $dec;
 	    } else {
 		push @tokens, [$dec, $charset];
@@ -285,7 +313,51 @@ sub decode_mimewords {
         die "MIME::EncWords: unexpected case:\n($encstr) pos $pos\n\t".
             "Please alert developer.\n";
     }
-    return (wantarray ? @tokens : join('',map {$_->[0]} @tokens));
+    return (wantarray ? @tokens : join('',map {
+	&_convert($_->[0], $_->[1], $cset)
+	} @tokens));
+}
+
+#------------------------------
+
+# _convert RAW, FROMCHARSET, TOCHARSET
+#     Private: used by encode_mimewords() to convert string by other charset
+#     or to decode to Unicode.
+#     When source charset is unknown and Unicode string is requested, at first
+#     try well-formed UTF-8 then fallback to ISO-8859-1 so that almost all
+#     non-ASCII bytes will be preserved.
+sub _convert($$$) {
+    my $s = shift;
+    my $charset = shift || "";
+    my $cset = shift;
+    return $s unless MIME::Charset::USE_ENCODE;
+    return $s unless $cset;
+    return $s if uc($charset) eq uc($cset);
+
+    my $preserveerr = $@;
+
+    my $converted = $s;
+    if ($cset eq "_UNICODE_") {
+	if (!resolve_alias($charset)) {
+	    if ($s =~ $UNSAFE) {
+		$@ = '';
+		eval {
+		    $converted = decode("UTF-8", $converted, FB_CROAK());
+		};
+		if ($@) {
+		    $converted = $s;
+		    $converted = decode("ISO-8859-1", $converted);
+		}
+	    }
+	} else {
+	    $converted = decode($charset, $converted);
+	}
+    } elsif (resolve_alias($charset)) {
+	from_to($converted, $charset, $cset);
+    }
+
+    $@ = $preserveerr;
+    return $converted;
 }
 
 #------------------------------
@@ -350,10 +422,16 @@ of characters:
 Returns the encoded string.
 
 B<Improvement by this module>:
-RAW may be a Unicode string.
-Furthermore, RAW may be an arrayref which is reference to that returned
-by decode_mimewords on array context.  In latter case Charset option
-(see below) will be overridden.
+RAW may be a Unicode string when Unicode/multibyte support is enabled
+(see L<MIME::Charset/"USE_ENCODE">).
+Furthermore, RAW may be a reference to that returned
+by L<"decode_mimewords"> on array context.  In latter case L<"Charset">
+option (see below) will be overridden.
+
+B<Change by this module>:
+Adjacent encoded-words are concatenated.  Then they are splitted taking
+care of character boundaries of multibyte sequences, when Unicode/multibyte
+support is enabled.
 
 Any arguments past the RAW string are taken to define a hash of options:
 
@@ -367,18 +445,21 @@ a.k.a. "Latin-1".
 =item Detect7bit
 
 B<Improvement by this modlue>:
-When L<"Encoding"> (see below) is specified as C<"a"> and Charset
+When L<"Encoding"> (see below) is specified as C<"a"> and L<"Charset">
 option is unknown, try to detect 7-bit charset on given RAW string.
 Default is C<"YES">.
+When Unicode/multibyte support is disabled,
+this option will not have any effects
+(see L<MIME::Charset/"USE_ENCODE">).
 
 =item Encoding
 
 The encoding to use, C<"q"> or C<"b">.  The default is C<"q">.
 B<Improvement by this module>:
 You may also specify ``special'' values: C<"a"> will automatically choose
-recommended encoding to use (with charset conversion, if alternative
-charset is recommended); C<"s"> will choose shorter one of either C<"q">
-or C<"b">.
+recommended encoding to use (with charset conversion if alternative
+charset is recommended: see L<MIME::Charset>);
+C<"s"> will choose shorter one of either C<"q"> or C<"b">.
 
 =item Field
 
@@ -389,23 +470,12 @@ encoded header.
 
 =back
 
-B<Warning:> this is a quick-and-dirty solution, intended for character
-sets which overlap ASCII.  B<It does not comply with the RFC-1522
-rules regarding the use of encoded words in message headers>.
-You may want to roll your own variant,
-using C<encode_mimeword()>, for your application.
-I<Thanks to Jan Kasprzak for reminding me about this problem.>
-
-B<Change by this module>:
-Encoded-words are concatenated then are splitted taking care of character
-boundaries of multibyte sequences.
-
 =cut
 
 sub encode_mimewords  {
     my $words = shift;
     my %params = @_;
-    my $charset = $params{'Charset'};
+    my $charset = uc($params{'Charset'});
     my $detect7bit = uc($params{'Detect7bit'} || "YES");
     my $encoding = uc($params{'Encoding'});
     my $header_name = $params{'Field'};
@@ -426,23 +496,24 @@ sub encode_mimewords  {
 
 	# Unicode string should be encoded by given charset.
 	# Unsupported charset will be fallbacked to UTF-8.
-	if (Encode::is_utf8($s)) {
-	    unless (Encode::resolve_alias($cset)) {
+	if (is_utf8($s)) {
+	    unless (resolve_alias($cset)) {
 		if ($s !~ $UNSAFE) {
 		    $cset = "US-ASCII";
 		} else {
 		    $cset = "UTF-8";
 		}
 	    }
-	    $s = Encode::encode($cset, $s);
+	    $s = encode($cset, $s);
 	}
 
 	# Determine charset and encoding.
 	if ($encoding eq "A") {
 	    ($s, $cset, $enc) =
-		header_encode($s, $cset, Detect7bit => $detect7bit);
+		header_encode($s, $cset || $charset,
+			      Detect7bit => $detect7bit);
 	} else {
-	    $cset ||= ($s !~ $UNSAFE)? "US-ASCII": "ISO-8859-1";
+	    $cset ||= ($charset || ($s !~ $UNSAFE)? "US-ASCII": "ISO-8859-1");
 	    $enc = $encoding ||
 		(($s !~ $UNSAFE and $cset eq "US-ASCII")? undef: "Q");
 	}
@@ -454,11 +525,11 @@ sub encode_mimewords  {
 	if (scalar(@triplets)) {
 	    my ($last, $lastenc, $lastcset) = @{$triplets[-1]};
 	    if (uc($lastcset) eq uc($cset) and uc($lastenc) eq uc($enc) and
-		Encode::resolve_alias($cset)) {
+		resolve_alias($cset)) {
 		${$triplets[-1]}[0] .= $s;
 		next;
 	    } elsif (!$lastenc and $enc and $last !~ /[\t ]$/) {
-		if ($last =~ /^(.*)[\t ]([\x21-\x7E]+)$/s) {
+		if ($last =~ /^(.*)[\t ]([$PRINTABLE]+)$/s) {
 		    ${$triplets[-1]}[0] = $1." ";
 		    $s = $2.$s;
 		} elsif (uc($lastcset) eq "US-ASCII") {
@@ -468,7 +539,7 @@ sub encode_mimewords  {
 		    next;
 		}
 	    } elsif ($lastenc and !$enc and $s !~ /^[\t ]/) {
-		if ($s =~ /^([\x21-\x7E]+)[\t ](.*)$/s) {
+		if ($s =~ /^([$PRINTABLE]+)[\t ](.*)$/s) {
 		    ${$triplets[-1]}[0] .= $1;
 		    $s = " ".$2;
 		} elsif (uc($cset) eq "US-ASCII") {
@@ -480,7 +551,7 @@ sub encode_mimewords  {
 	push @triplets, [$s, $enc, $cset];
     }
 
-    # Split.
+    # Split long ``words''.
     my @splitted;
     my $restlen = $firstlinelen;
     my $lastlen = 0;
@@ -514,15 +585,15 @@ sub encode_mimewords  {
 	} else {
 	    $s = &encode_mimeword($str, $encoding, $charset);
 	}
-	my $spc = (scalar(@lines) and $lines[-1] =~ / $/)? '': ' ';
 
+	my $spc = (scalar(@lines) and $lines[-1] =~ /[\t ]$/)? '': ' ';
 	if (!scalar(@lines)) {
-	    $s =~ s/^\s+//;
+	    $s =~ s/^[\r\n\t ]+//;
 	    push @lines, $s;
 	} elsif (length($lines[-1]) + length($s) <= $linelen) {
 	    $lines[-1] .= $spc.$s;
 	} else {
-	    $s =~ s/^\s+//;
+	    $s =~ s/^[\r\n\t ]+//;
 	    push @lines, $s;
 	    $linelen = $MAXLINELEN - 1;
 	}
@@ -543,10 +614,11 @@ sub _split {
     my $charset = shift;
     my $restlen = shift;
 
-    if (!$charset or $charset eq '8BIT') { # Undecodable.
+    if (!$charset or $charset eq '8BIT') {	# Undecodable.
+	$str =~ s/[\r\n]+[\t ]*|\x00/ /g;	# Eliminate hostile characters.
 	return ([$str, undef, $charset]);
     }
-    unless (Encode::resolve_alias($charset)) { # Unsuppoted charset.
+    unless (resolve_alias($charset)) {		# Unsupported charset.
 	return ([$str, $encoding, $charset]);
     }
     if (!$encoding and $charset eq 'US-ASCII') {
@@ -560,7 +632,7 @@ sub _split {
 	    last;
 	}
 	$ustr = $str;
-	$ustr = Encode::decode($charset, $ustr);
+	$ustr = decode($charset, $ustr);
 	($first, $str) = &_clip_unsafe($ustr, $encoding, $charset, $restlen);
 	push @splitted, [$first, $encoding, $charset];
 	$restlen = $MAXLINELEN - 1;
@@ -569,46 +641,67 @@ sub _split {
 }
 
 # _split_ascii RAW, ROOM_OF_FIRST_LINE
-#     Private: used by encode_mimewords() to split an ASCII string into
+#     Private: used by encode_mimewords() to split an US-ASCII string into
 #     (encoded or non-encoded) words.
-#     Returns an array of arrayrefs [SUBSTRING, ENCODING, "US-ASCII"].
+#     Returns an array of arrayrefs [SUBSTRING, ENCODING, "US-ASCII"],
+#     where ENCODING is either undef or (if any unsafe sequences are
+#     included) "Q".
 sub _split_ascii {
     my $s = shift;
-    my $firstlinelen = shift;
-    my $restlen = $firstlinelen;
+    my $restlen = shift || $MAXLINELEN - 1;
 
     my @splitted;
     foreach my $line (split(/[\r\n]+/, $s)) {
 	$line =~ s/^[\t ]+//;
 
-	if (length($line) < $restlen) {
-	    push @splitted, [$line, undef, 'US-ASCII'];
+	if (length($line) < $restlen and $line !~ /=\?|$UNSAFE/) {
+	    push @splitted, [$line, undef, "US-ASCII"];
 	    $restlen = $MAXLINELEN - 1;
 	    next;
 	}
 
-	my @words;
-        my $spc;
+        my ($spc, $enc);
 	foreach my $word (split(/([\t ]+)/, $line)) {
-	    unless ($word =~ /[^\t ]/) {
+	    if ($word =~ /[\t ]/) {
 		$spc = $word;
 		next;
 	    }
-	    if (scalar(@words)) {
-		if (length($spc.$word) < $restlen) {
-		    $words[-1] .= $spc.$word;
-		    $restlen -= length($spc.$word);
+
+	    $enc = ($word =~ /=\?|$UNSAFE/)? "Q": undef;
+	    if (scalar(@splitted)) {
+		my ($last, $lastenc, $lastcset) = @{$splitted[-1]};
+		my ($elen, $cont, $appe);
+
+		# Concatenate adjacent words so that encoded-word and
+		# unencoded text will adjoin with separating whitespace.
+		if (!$lastenc and !$enc) {
+		    $elen = length($spc.$word);
+		    ($cont, $appe) = ($spc.$word, "");
+		} elsif (!$lastenc and $enc) {
+		    $elen = length($spc) +
+			encoded_header_len($word, "Q", "US-ASCII");
+		    ($cont, $appe) = ($spc, $word);
+		} elsif ($lastenc and !$enc) {
+		    $elen = length($spc.$word);
+		    ($cont, $appe) = ("", $spc.$word);
 		} else {
-		    push @words, $word;
-		    $restlen = $MAXLINELEN - length($word) - 1;
+		    $elen = encoded_header_len($spc.$word, "Q",
+					       "US-ASCII") - 15;
+		    ($cont, $appe) = ($spc.$word, "");
 		}
-	    } else {
-		push @words, $word;
-		$restlen -= length($word);
+
+		if ($elen <= $restlen) {
+		    ${$splitted[-1]}[0] .= $cont if length($cont);
+		    push @splitted, [$appe, $enc, "US-ASCII"] if length($appe);
+		    $restlen -= $elen;
+		    next;
+		}
+		$restlen = $MAXLINELEN - 1;
 	    }
-	}
-	foreach (@words) {
-	    push @splitted, [$_, undef, 'US-ASCII'];
+	    push @splitted, [$word, $enc, "US-ASCII"];
+	    $restlen -= ($enc?
+		encoded_header_len($word, "Q", "US-ASCII"):
+		length($word));
 	}
     }
     return @splitted;
@@ -625,10 +718,10 @@ sub _clip_unsafe {
     return ("", "") unless length($ustr);
 
     # Seek maximal division point.
-    my ($shorter, $longer) = (0, length($ustr)-1);
+    my ($shorter, $longer) = (0, length($ustr));
     while ($shorter < $longer) {
 	my $cur = int(($shorter + $longer + 1) / 2);
-	my $enc = Encode::encode($charset, substr($ustr, 0, $cur));
+	my $enc = encode($charset, substr($ustr, 0, $cur));
 	my $elen = encoded_header_len($enc, $encoding, $charset);
 	if ($elen <= $restlen) {
 	    $shorter = $cur;
@@ -645,15 +738,15 @@ sub _clip_unsafe {
 	eval {
 	    ($fenc, $renc) =
 		(substr($ustr, 0, $shorter), substr($ustr, $shorter));
-	    $fenc = &Encode::encode($charset, $fenc, Encode::FB_CROAK);
-	    $renc = &Encode::encode($charset, $renc, Encode::FB_CROAK);
+	    $fenc = encode($charset, $fenc, FB_CROAK());
+	    $renc = encode($charset, $renc, FB_CROAK());
 	};
 	last unless ($@);
 
-	unless ($shorter < $max) { # Unencodable characters are included.
-	    return (Encode::encode($charset, $ustr), "");
-	}
 	$shorter++;
+	unless ($shorter < $max) { # Unencodable characters are included.
+	    return (encode($charset, $ustr), "");
+	}
     }
 
     if (length($fenc)) {
@@ -667,15 +760,20 @@ sub _clip_unsafe {
 
 =back
 
+=head1 SEE ALSO
+
+L<MIME::Charset>,
+L<MIME::Tools>
+
 =head1 AUTHORS
 
 The original version of function decode_mimewords() is derived from
-MIME::Words module that was written by:
+L<MIME::Words> module that was written by:
     Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
     David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
 Other stuffs are rewritten or added by:
-    Hatuka*nezumi - IKEDA Soji (F<hatuka@nezumi.nu>).
+    Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
 
 All rights reserved.  This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

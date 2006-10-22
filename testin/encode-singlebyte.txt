@@ -1,0 +1,36 @@
+GOOD
+"Oc\xE9 3165 Network Copier down for maintenance"
+=?ISO-8859-1?Q?Oc=E9_3165_Network_Copier_down_for_maintenance?=
+
+GOOD
+"Keith Moore <moore\@cs.utk.edu>"
+Keith Moore <moore@cs.utk.edu>
+
+GOOD
+[["Keld J\xF8rn Simonsen"],[" "],["<keld\@dkuug.dk>"]]
+=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>
+
+GOOD
+[["Andr\xE9 "],["(<- one space) Pirard"],[" "],["<PIRARD\@vm1.ulg.ac.be>"]]
+=?ISO-8859-1?Q?Andr=E9_(<-?= one space) Pirard <PIRARD@vm1.ulg.ac.be>
+
+GOOD
+[["Andr\xE9"],[" (<- one space) Pirard"],[" "],["<PIRARD\@vm1.ulg.ac.be>"]]
+=?ISO-8859-1?Q?Andr=E9?= (<- one space) Pirard <PIRARD@vm1.ulg.ac.be>
+
+GOOD
+[["Andr\xE9  "],["(<- two spaces) Pirard"],[" "],["<PIRARD\@vm1.ulg.ac.be>"]]
+=?ISO-8859-1?Q?Andr=E9__(<-?= two spaces) Pirard <PIRARD@vm1.ulg.ac.be>
+
+GOOD
+[["Andr\xE9 "],[" (<- two spaces) Pirard"],[" "],["<PIRARD\@vm1.ulg.ac.be>"]]
+=?ISO-8859-1?Q?Andr=E9_?= (<- two spaces) Pirard <PIRARD@vm1.ulg.ac.be>
+
+GOOD
+[["Andr\xE9"],["  (<- two spaces) Pirard"],[" "],["<PIRARD\@vm1.ulg.ac.be>"]]
+=?ISO-8859-1?Q?Andr=E9?= (<- two spaces) Pirard <PIRARD@vm1.ulg.ac.be>
+
+GOOD
+"_-_"
+_-_
+

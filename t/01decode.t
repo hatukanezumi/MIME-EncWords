@@ -1,5 +1,13 @@
 use strict;
-use Test::More qw(no_plan);
+use Test;
+
+BEGIN { plan tests => ($] >= 5.008001)? 20: 10 }
+
+my $_UNICODE = ($] >= 5.008001);
+if ($_UNICODE) {
+    use Encode;
+}
+
 use MIME::EncWords qw(decode_mimewords);
 
 {
@@ -15,6 +23,12 @@ use MIME::EncWords qw(decode_mimewords);
 	my $dec = decode_mimewords($enc);
 	ok((($isgood && !$@) or (!$isgood && $@)) and
            ($isgood ? ($dec eq $expect) : 1));
+	if ($_UNICODE) {
+	    $dec = decode_mimewords($enc, Charset => "utf-8");
+	    Encode::from_to($expect, "iso-8859-1", "utf-8");
+	    ok((($isgood && !$@) or (!$isgood && $@)) and
+		($isgood ? ($dec eq $expect) : 1));
+	}
     }
     close WORDS;
 }    

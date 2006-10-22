@@ -96,18 +96,30 @@ PUBLIC INTERFACE
         Any arguments past the ENCODED string are taken to define a hash of
         options:
 
+        Charset
+            Improvement by this module: Name of character set by which data
+            elements in scalar context will be converted. If this option is
+            specified as special value "_UNICODE_", returned value will be
+            Unicode string.
+
+            When Unicode/multibyte support is disabled (see "USE_ENCODE" in
+            MIME::Charset), this option will not have any effects.
+
+            Note: This feature is still information-lossy, *except* when
+            "_UNICODE_" is specified.
+
         Field
             Name of the mail field this string came from. *Currently
             ignored.*
 
         Improvement by this module: Adjacent encoded-words with same charset
-        will be concatenated (if that charset is supported by Encode) to
-        handle multibyte sequences safely.
+        will be concatenated to handle multibyte sequences safely.
 
         Change by this module: Malformed base64 encoded-words will be kept
-        encoded.
+        encoded. In this case $@ will be set.
 
-        NOTE: Whitespaces surrounding unencoded data will not be stripped.
+        Compatibility with MIME::Words: Whitespaces surrounding unencoded
+        data will not be stripped.
 
     encode_mimeword RAW, [ENCODING], [CHARSET]
         *Function.* Encode a single RAW "word" that has unsafe characters.
@@ -118,7 +130,7 @@ PUBLIC INTERFACE
 
         You may specify the ENCODING ("Q" or "B"), which defaults to "Q".
         Improvement by this module: You may also specify it as ``special''
-        value: "S" for choosing shorter one of either "Q" or "B".
+        value: "S" to choose shorter one of either "Q" or "B".
 
         You may specify the CHARSET, which defaults to "iso-8859-1".
 
@@ -134,10 +146,15 @@ PUBLIC INTERFACE
 
         Returns the encoded string.
 
-        Improvement by this module: RAW may be a Unicode string.
-        Furthermore, RAW may be an arrayref which is reference to that
-        returned by decode_mimewords on array context. In latter case
-        Charset option (see below) will be overridden.
+        Improvement by this module: RAW may be a Unicode string when
+        Unicode/multibyte support is enabled (see "USE_ENCODE" in
+        MIME::Charset). Furthermore, RAW may be a reference to that returned
+        by "decode_mimewords" on array context. In latter case "Charset"
+        option (see below) will be overridden.
+
+        Change by this module: Adjacent encoded-words are concatenated. Then
+        they are splitted taking care of character boundaries of multibyte
+        sequences, when Unicode/multibyte support is enabled.
 
         Any arguments past the RAW string are taken to define a hash of
         options:
@@ -148,30 +165,26 @@ PUBLIC INTERFACE
 
         Detect7bit
             Improvement by this modlue: When "Encoding" (see below) is
-            specified as "a" and Charset option is unknown, try to detect
-            7-bit charset on given RAW string. Default is "YES".
+            specified as "a" and "Charset" option is unknown, try to detect
+            7-bit charset on given RAW string. Default is "YES". When
+            Unicode/multibyte support is disabled, this option will not have
+            any effects (see "USE_ENCODE" in MIME::Charset).
 
         Encoding
             The encoding to use, "q" or "b". The default is "q". Improvement
             by this module: You may also specify ``special'' values: "a"
             will automatically choose recommended encoding to use (with
-            charset conversion, if alternative charset is recommended); "s"
-            will choose shorter one of either "q" or "b".
+            charset conversion if alternative charset is recommended: see
+            MIME::Charset); "s" will choose shorter one of either "q" or
+            "b".
 
         Field
             Name of the mail field this string will be used in. Improvement
             by this module: Length of mail field name will be considered in
             the first line of encoded header.
 
-        Warning: this is a quick-and-dirty solution, intended for character
-        sets which overlap ASCII. It does not comply with the RFC-1522 rules
-        regarding the use of encoded words in message headers. You may want
-        to roll your own variant, using "encode_mimeword()", for your
-        application. *Thanks to Jan Kasprzak for reminding me about this
-        problem.*
-
-        Change by this module: Encoded-words are concatenated then are
-        splitted taking care of character boundaries of multibyte sequences.
+SEE ALSO
+    MIME::Charset, MIME::Tools
 
 AUTHORS
     The original version of function decode_mimewords() is derived from
@@ -180,7 +193,7 @@ AUTHORS
     (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
     Other stuffs are rewritten or added by: Hatuka*nezumi - IKEDA Soji
-    (hatuka@nezumi.nu).
+    <hatuka(at)nezumi.nu>.
 
     All rights reserved. This program is free software; you can redistribute
     it and/or modify it under the same terms as Perl itself.
