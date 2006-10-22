@@ -1,0 +1,15 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         MIME-EncWords
+version:      0.01
+version_from: EncWords.pm
+installdirs:  site
+license:      perl
+requires:
+    Encode:                        2.01
+    MIME::Base64:                  3.05
+    MIME::Charset:                 0.03
+    Test::More:                    0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17
