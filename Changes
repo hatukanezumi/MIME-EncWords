@@ -1,6 +1,11 @@
+2006-10-22	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 0.03.2.
+	* More documentation changes.
+
 2006-10-20	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
-	* Release 0.03.1.
+	* Release 0.03.1 (not really released).
 	* Documentation changes only: Note on modifications, clarifications
 	  about compatibility with MIME::Words.
 

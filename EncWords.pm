@@ -118,7 +118,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "0.03.1";
+$VERSION = '0.03.2';
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
@@ -438,19 +438,7 @@ RAW may be a Unicode string when Unicode/multibyte support is enabled
 (see L<MIME::Charset/USE_ENCODE>).
 Furthermore, RAW may be a reference to that returned
 by L<"decode_mimewords"> on array context.  In latter case "Charset"
-option (see below) will be overridden.
-
-B<Change by this module>:
-Adjacent encoded-words are concatenated.  Then they are splitted taking
-care of character boundaries of multibyte sequences, when Unicode/multibyte
-support is enabled.
-
-B<Imcompatibility with MIME::Words>:
-L<MIME::Words> takes care of natural word separators (i.e. whitespaces)
-in the text to be encoded.  This module will encode whole text
-(if encoding needed) not mentioning whitespaces;
-encoded-words exceeding line length will be splitted based only on their
-lengths.
+option (see below) will be overridden (see also notes below).
 
 Any arguments past the RAW string are taken to define a hash of options:
 
@@ -488,6 +476,21 @@ Length of mail field name will be considered in the first line of
 encoded header.
 
 =back
+
+B<Notes on improvement by this module>:
+When RAW is an arrayref,
+adjacent encoded-words are concatenated.  Then they are splitted taking
+care of character boundaries of multibyte sequences, when Unicode/multibyte
+support is enabled.
+Portions for unencoded data should include surrounding whitespace(s), or
+they will be merged into adjoining encoded word(s).
+
+B<Imcompatibility with MIME::Words>:
+L<MIME::Words> takes care of natural word separators (i.e. whitespaces)
+in the text to be encoded.  This module will encode whole text
+(if encoding needed) not mentioning whitespaces;
+encoded-words exceeding line length will be splitted based only on their
+lengths.
 
 =cut
 
@@ -780,6 +783,13 @@ sub _clip_unsafe {
 #------------------------------
 
 =back
+
+=head1 VERSION
+
+Consult $VERSION variable.
+
+Development versions of this module may be found at
+L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>.
 
 =head1 SEE ALSO
 

@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         MIME-EncWords
-version:      0.03.1
+version:      0.03.2
 version_from: EncWords.pm
 installdirs:  site
 requires:
