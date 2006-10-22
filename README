@@ -5,7 +5,8 @@ SYNOPSIS
     *MIME::EncWords is aimed to be another implimentation of MIME::Words so
     that it will achive more exact conformance with MIME specifications.
     Additionally, it contains some improvements. Following synopsis and
-    descriptions are inherited from its inspirer.*
+    descriptions are inherited from its inspirer, with description of
+    improvements and clarifications added.*
 
     Before reading further, you should see MIME::Tools to make sure that you
     understand where this module fits into the grand scheme of things. Go
@@ -86,7 +87,8 @@ PUBLIC INTERFACE
         and probably *not* what you want, but if you know that all charsets
         in the ENCODED string are identical, it might be useful to you.
         (Before you use this, please see "unmime" in MIME::WordDecoder,
-        which is probably what you want.)
+        which is probably what you want.) Note: See also "Charset" option
+        below.
 
         In the event of a syntax error, $@ will be set to a description of
         the error, but parsing will continue as best as possible (so as to
@@ -156,6 +158,12 @@ PUBLIC INTERFACE
         they are splitted taking care of character boundaries of multibyte
         sequences, when Unicode/multibyte support is enabled.
 
+        Imcompatibility with MIME::Words: MIME::Words takes care of natural
+        word separators (i.e. whitespaces) in the text to be encoded. This
+        module will encode whole text (if encoding needed) not mentioning
+        whitespaces; encoded-words exceeding line length will be splitted
+        based only on their lengths.
+
         Any arguments past the RAW string are taken to define a hash of
         options:
 
@@ -164,9 +172,9 @@ PUBLIC INTERFACE
             'ISO-8859-1', a.k.a. "Latin-1".
 
         Detect7bit
-            Improvement by this modlue: When "Encoding" (see below) is
-            specified as "a" and "Charset" option is unknown, try to detect
-            7-bit charset on given RAW string. Default is "YES". When
+            Improvement by this modlue: When "Encoding" option (see below)
+            is specified as "a" and "Charset" option is unknown, try to
+            detect 7-bit charset on given RAW string. Default is "YES". When
             Unicode/multibyte support is disabled, this option will not have
             any effects (see "USE_ENCODE" in MIME::Charset).
 
@@ -192,7 +200,7 @@ AUTHORS
     Software Inc (http://www.zeegee.com). David F. Skoll
     (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
-    Other stuffs are rewritten or added by: Hatuka*nezumi - IKEDA Soji
+    Other stuff are rewritten or added by: Hatuka*nezumi - IKEDA Soji
     <hatuka(at)nezumi.nu>.
 
     All rights reserved. This program is free software; you can redistribute

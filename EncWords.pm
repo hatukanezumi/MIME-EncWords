@@ -11,7 +11,8 @@ MIME::EncWords - deal with RFC-1522 encoded words (improved)
 I<L<MIME::EncWords> is aimed to be another implimentation
 of L<MIME::Words> so that it will achive more exact conformance with
 MIME specifications.  Additionally, it contains some improvements.
-Following synopsis and descriptions are inherited from its inspirer.>
+Following synopsis and descriptions are inherited from its inspirer,
+with description of improvements and clarifications added.>
 
 Before reading further, you should see L<MIME::Tools> to make sure that
 you understand where this module fits into the grand scheme of things.
@@ -117,7 +118,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "0.03";
+$VERSION = "0.03.1";
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
@@ -443,6 +444,13 @@ B<Change by this module>:
 Adjacent encoded-words are concatenated.  Then they are splitted taking
 care of character boundaries of multibyte sequences, when Unicode/multibyte
 support is enabled.
+
+B<Imcompatibility with MIME::Words>:
+L<MIME::Words> takes care of natural word separators (i.e. whitespaces)
+in the text to be encoded.  This module will encode whole text
+(if encoding needed) not mentioning whitespaces;
+encoded-words exceeding line length will be splitted based only on their
+lengths.
 
 Any arguments past the RAW string are taken to define a hash of options:
 
