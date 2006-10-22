@@ -1,208 +1,228 @@
-NAME
-    MIME::EncWords - deal with RFC-1522 encoded words (improved)
+EncWords(3)           User Contributed Perl Documentation          EncWords(3)
 
-SYNOPSIS
-    *MIME::EncWords is aimed to be another implimentation of MIME::Words so
-    that it will achive more exact conformance with MIME specifications.
-    Additionally, it contains some improvements. Following synopsis and
-    descriptions are inherited from its inspirer, with description of
-    improvements and clarifications added.*
 
-    Before reading further, you should see MIME::Tools to make sure that you
-    understand where this module fits into the grand scheme of things. Go
-    on, do it now. I'll wait.
 
-    Ready? Ok...
+NNAAMMEE
+       MIME::EncWords - deal with RFC-1522 encoded words (improved)
 
-        use MIME::EncWords qw(:all);
+SSYYNNOOPPSSIISS
+       _M_I_M_E_:_:_E_n_c_W_o_r_d_s _i_s _a_i_m_e_d _t_o _b_e _a_n_o_t_h_e_r _i_m_p_l_i_m_e_n_t_a_t_i_o_n _o_f _M_I_M_E_:_:_W_o_r_d_s _s_o
+       _t_h_a_t _i_t _w_i_l_l _a_c_h_i_v_e _m_o_r_e _e_x_a_c_t _c_o_n_f_o_r_m_a_n_c_e _w_i_t_h _M_I_M_E _s_p_e_c_i_f_i_c_a_t_i_o_n_s_.
+       _A_d_d_i_t_i_o_n_a_l_l_y_, _i_t _c_o_n_t_a_i_n_s _s_o_m_e _i_m_p_r_o_v_e_m_e_n_t_s_.  _F_o_l_l_o_w_i_n_g _s_y_n_o_p_s_i_s _a_n_d
+       _d_e_s_c_r_i_p_t_i_o_n_s _a_r_e _i_n_h_e_r_i_t_e_d _f_r_o_m _i_t_s _i_n_s_p_i_r_e_r_, _w_i_t_h _d_e_s_c_r_i_p_t_i_o_n _o_f
+       _i_m_p_r_o_v_e_m_e_n_t_s _a_n_d _c_l_a_r_i_f_i_c_a_t_i_o_n_s _a_d_d_e_d_.
 
-        ### Decode the string into another string, forgetting the charsets:
-        $decoded = decode_mimewords(
-              'To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>',
-              );
+       Before reading further, you should see MIME::Tools to make sure that
+       you understand where this module fits into the grand scheme of things.
+       Go on, do it now.  I'll wait.
 
-        ### Split string into array of decoded [DATA,CHARSET] pairs:
-        @decoded = decode_mimewords(
-              'To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>',
-              );
+       Ready?  Ok...
 
-        ### Encode a single unsafe word:
-        $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
+           use MIME::EncWords qw(:all);
 
-        ### Encode a string, trying to find the unsafe words inside it:
-        $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB in town");
+           ### Decode the string into another string, forgetting the charsets:
+           $decoded = decode_mimewords(
+                 'To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>',
+                 );
 
-DESCRIPTION
-    Fellow Americans, you probably won't know what the hell this module is
-    for. Europeans, Russians, et al, you probably do. ":-)".
+           ### Split string into array of decoded [DATA,CHARSET] pairs:
+           @decoded = decode_mimewords(
+                 'To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>',
+                 );
 
-    For example, here's a valid MIME header you might get:
+           ### Encode a single unsafe word:
+           $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
 
-          From: =?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>
-          To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>
-          CC: =?ISO-8859-1?Q?Andr=E9_?= Pirard <PIRARD@vm1.ulg.ac.be>
-          Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
-           =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=
-           =?US-ASCII?Q?.._cool!?=
+           ### Encode a string, trying to find the unsafe words inside it:
+           $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB in town");
 
-    The fields basically decode to (sorry, I can only approximate the Latin
-    characters with 7 bit sequences /o and 'e):
+DDEESSCCRRIIPPTTIIOONN
+       Fellow Americans, you probably won't know what the hell this module is
+       for.  Europeans, Russians, et al, you probably do.  ":-)".
 
-          From: Keith Moore <moore@cs.utk.edu>
-          To: Keld J/orn Simonsen <keld@dkuug.dk>
-          CC: Andr'e  Pirard <PIRARD@vm1.ulg.ac.be>
-          Subject: If you can read this you understand the example... cool!
+       For example, here's a valid MIME header you might get:
 
-    Supplement: Fellow Americans, Europeans, you probably won't know what
-    the hell this module is for. East Asians, et al, you probably do. ":-)".
+             From: =?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>
+             To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>
+             CC: =?ISO-8859-1?Q?Andr=E9_?= Pirard <PIRARD@vm1.ulg.ac.be>
+             Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
+              =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=
+              =?US-ASCII?Q?.._cool!?=
 
-    For example, here's a valid MIME header you might get:
+       The fields basically decode to (sorry, I can only approximate the Latin
+       characters with 7 bit sequences /o and 'e):
 
-          Subject: =?EUC-KR?B?sNTAuLinKGxhemluZXNzKSwgwvzB9ri7seIoaW1w?=
-           =?EUC-KR?B?YXRpZW5jZSksILGzuLgoaHVicmlzKQ==?=
+             From: Keith Moore <moore@cs.utk.edu>
+             To: Keld J/orn Simonsen <keld@dkuug.dk>
+             CC: Andr'e  Pirard <PIRARD@vm1.ulg.ac.be>
+             Subject: If you can read this you understand the example... cool!
 
-    The fields basically decode to (sorry, I cannot approximate the
-    non-Latin multibyte characters with any 7 bit sequences):
+       SSuupppplleemmeenntt: Fellow Americans, Europeans, you probably won't know what
+       the hell this module is for.  East Asians, et al, you probably do.
+       ":-)".
 
-          Subject: ???(laziness), ????(impatience), ??(hubris)
+       For example, here's a valid MIME header you might get:
 
-PUBLIC INTERFACE
-    decode_mimewords ENCODED, [OPTS...]
-        *Function.* Go through the string looking for RFC-1522-style "Q"
-        (quoted-printable, sort of) or "B" (base64) encoding, and decode
-        them.
+             Subject: =?EUC-KR?B?sNTAuLinKGxhemluZXNzKSwgwvzB9ri7seIoaW1w?=
+              =?EUC-KR?B?YXRpZW5jZSksILGzuLgoaHVicmlzKQ==?=
 
-        In an array context, splits the ENCODED string into a list of
-        decoded "[DATA, CHARSET]" pairs, and returns that list. Unencoded
-        data are returned in a 1-element array "[DATA]", giving an effective
-        CHARSET of "undef".
+       The fields basically decode to (sorry, I cannot approximate the non-
+       Latin multibyte characters with any 7 bit sequences):
 
-            $enc = '=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>';
-            foreach (decode_mimewords($enc)) {
-                print "", ($_[1] || 'US-ASCII'), ": ", $_[0], "\n";
-            }
+             Subject: ???(laziness), ????(impatience), ??(hubris)
 
-        In a scalar context, joins the "data" elements of the above list
-        together, and returns that. *Warning: this is information-lossy,*
-        and probably *not* what you want, but if you know that all charsets
-        in the ENCODED string are identical, it might be useful to you.
-        (Before you use this, please see "unmime" in MIME::WordDecoder,
-        which is probably what you want.) Note: See also "Charset" option
-        below.
+PPUUBBLLIICC IINNTTEERRFFAACCEE
+       decode_mimewords ENCODED, [OPTS...]
+           _F_u_n_c_t_i_o_n_.  Go through the string looking for RFC-1522-style "Q"
+           (quoted-printable, sort of) or "B" (base64) encoding, and decode
+           them.
 
-        In the event of a syntax error, $@ will be set to a description of
-        the error, but parsing will continue as best as possible (so as to
-        get *something* back when decoding headers). $@ will be false if no
-        error was detected.
+           IInn aann aarrrraayy ccoonntteexxtt,, splits the ENCODED string into a list of
+           decoded "[DATA, CHARSET]" pairs, and returns that list.  Unencoded
+           data are returned in a 1-element array "[DATA]", giving an effec-
+           tive CHARSET of "undef".
 
-        Any arguments past the ENCODED string are taken to define a hash of
-        options:
+               $enc = '=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>';
+               foreach (decode_mimewords($enc)) {
+                   print "", ($_[1] || 'US-ASCII'), ": ", $_[0], "\n";
+               }
 
-        Charset
-            Improvement by this module: Name of character set by which data
-            elements in scalar context will be converted. If this option is
-            specified as special value "_UNICODE_", returned value will be
-            Unicode string.
+           IInn aa ssccaallaarr ccoonntteexxtt,, joins the "data" elements of the above list
+           together, and returns that.  _W_a_r_n_i_n_g_: _t_h_i_s _i_s _i_n_f_o_r_m_a_t_i_o_n_-_l_o_s_s_y_,
+           and probably _n_o_t what you want, but if you know that all charsets
+           in the ENCODED string are identical, it might be useful to you.
+           (Before you use this, please see "unmime" in MIME::WordDecoder,
+           which is probably what you want.)  NNoottee: See also "Charset" option
+           below.
 
-            When Unicode/multibyte support is disabled (see "USE_ENCODE" in
-            MIME::Charset), this option will not have any effects.
+           In the event of a syntax error, $@ will be set to a description of
+           the error, but parsing will continue as best as possible (so as to
+           get _s_o_m_e_t_h_i_n_g back when decoding headers).  $@ will be false if no
+           error was detected.
 
-            Note: This feature is still information-lossy, *except* when
-            "_UNICODE_" is specified.
+           Any arguments past the ENCODED string are taken to define a hash of
+           options:
 
-        Field
-            Name of the mail field this string came from. *Currently
-            ignored.*
+           Charset
+               IImmpprroovveemmeenntt bbyy tthhiiss mmoodduullee: Name of character set by which data
+               elements in scalar context will be converted.  If this option
+               is specified as special value "_UNICODE_", returned value will
+               be Unicode string.
 
-        Improvement by this module: Adjacent encoded-words with same charset
-        will be concatenated to handle multibyte sequences safely.
+               When Unicode/multibyte support is disabled (see "USE_ENCODE" in
+               MIME::Charset), this option will not have any effects.
 
-        Change by this module: Malformed base64 encoded-words will be kept
-        encoded. In this case $@ will be set.
+               NNoottee: This feature is still information-lossy, _e_x_c_e_p_t when
+               "_UNICODE_" is specified.
 
-        Compatibility with MIME::Words: Whitespaces surrounding unencoded
-        data will not be stripped.
+           Field
+               Name of the mail field this string came from.  _C_u_r_r_e_n_t_l_y
+               _i_g_n_o_r_e_d_.
 
-    encode_mimeword RAW, [ENCODING], [CHARSET]
-        *Function.* Encode a single RAW "word" that has unsafe characters.
-        The "word" will be encoded in its entirety.
+           IImmpprroovveemmeenntt bbyy tthhiiss mmoodduullee: Adjacent encoded-words with same
+           charset will be concatenated to handle multibyte sequences safely.
 
-            ### Encode "<<Franc,ois>>":
-            $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
+           CChhaannggee bbyy tthhiiss mmoodduullee: Malformed base64 encoded-words will be kept
+           encoded.  In this case $@ will be set.
 
-        You may specify the ENCODING ("Q" or "B"), which defaults to "Q".
-        Improvement by this module: You may also specify it as ``special''
-        value: "S" to choose shorter one of either "Q" or "B".
+           CCoommppaattiibbiilliittyy wwiitthh MMIIMMEE::::WWoorrddss: Whitespaces surrounding unencoded
+           data will not be stripped.
 
-        You may specify the CHARSET, which defaults to "iso-8859-1".
+       encode_mimeword RAW, [ENCODING], [CHARSET]
+           _F_u_n_c_t_i_o_n_.  Encode a single RAW "word" that has unsafe characters.
+           The "word" will be encoded in its entirety.
 
-        Change by this module: Spaces will be escaped with ``_'' by "Q"
-        encoding.
+               ### Encode "<<Franc,ois>>":
+               $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
 
-    encode_mimewords RAW, [OPTS]
-        *Function.* Given a RAW string, try to find and encode all "unsafe"
-        sequences of characters:
+           You may specify the ENCODING ("Q" or "B"), which defaults to "Q".
+           IImmpprroovveemmeenntt bbyy tthhiiss mmoodduullee: You may also specify it as ''special''
+           value: "S" to choose shorter one of either "Q" or "B".
 
-            ### Encode a string with some unsafe "words":
-            $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB");
+           You may specify the CHARSET, which defaults to "iso-8859-1".
 
-        Returns the encoded string.
+           CChhaannggee bbyy tthhiiss mmoodduullee: Spaces will be escaped with ''_'' by "Q"
+           encoding.
 
-        Improvement by this module: RAW may be a Unicode string when
-        Unicode/multibyte support is enabled (see "USE_ENCODE" in
-        MIME::Charset). Furthermore, RAW may be a reference to that returned
-        by "decode_mimewords" on array context. In latter case "Charset"
-        option (see below) will be overridden.
+       encode_mimewords RAW, [OPTS]
+           _F_u_n_c_t_i_o_n_.  Given a RAW string, try to find and encode all "unsafe"
+           sequences of characters:
 
-        Change by this module: Adjacent encoded-words are concatenated. Then
-        they are splitted taking care of character boundaries of multibyte
-        sequences, when Unicode/multibyte support is enabled.
+               ### Encode a string with some unsafe "words":
+               $encoded = encode_mimewords("Me and \xABFran\xE7ois\xBB");
 
-        Imcompatibility with MIME::Words: MIME::Words takes care of natural
-        word separators (i.e. whitespaces) in the text to be encoded. This
-        module will encode whole text (if encoding needed) not mentioning
-        whitespaces; encoded-words exceeding line length will be splitted
-        based only on their lengths.
+           Returns the encoded string.
 
-        Any arguments past the RAW string are taken to define a hash of
-        options:
+           IImmpprroovveemmeenntt bbyy tthhiiss mmoodduullee: RAW may be a Unicode string when Uni-
+           code/multibyte support is enabled (see "USE_ENCODE" in
+           MIME::Charset).  Furthermore, RAW may be a reference to that
+           returned by "decode_mimewords" on array context.  In latter case
+           "Charset" option (see below) will be overridden (see also notes
+           below).
 
-        Charset
-            Encode all unsafe stuff with this charset. Default is
-            'ISO-8859-1', a.k.a. "Latin-1".
+           Any arguments past the RAW string are taken to define a hash of
+           options:
 
-        Detect7bit
-            Improvement by this modlue: When "Encoding" option (see below)
-            is specified as "a" and "Charset" option is unknown, try to
-            detect 7-bit charset on given RAW string. Default is "YES". When
-            Unicode/multibyte support is disabled, this option will not have
-            any effects (see "USE_ENCODE" in MIME::Charset).
+           Charset
+               Encode all unsafe stuff with this charset.  Default is
+               'ISO-8859-1', a.k.a. "Latin-1".
 
-        Encoding
-            The encoding to use, "q" or "b". The default is "q". Improvement
-            by this module: You may also specify ``special'' values: "a"
-            will automatically choose recommended encoding to use (with
-            charset conversion if alternative charset is recommended: see
-            MIME::Charset); "s" will choose shorter one of either "q" or
-            "b".
+           Detect7bit
+               IImmpprroovveemmeenntt bbyy tthhiiss mmooddlluuee: When "Encoding" option (see below)
+               is specified as "a" and "Charset" option is unknown, try to
+               detect 7-bit charset on given RAW string.  Default is "YES".
+               When Unicode/multibyte support is disabled, this option will
+               not have any effects (see "USE_ENCODE" in MIME::Charset).
 
-        Field
-            Name of the mail field this string will be used in. Improvement
-            by this module: Length of mail field name will be considered in
-            the first line of encoded header.
+           Encoding
+               The encoding to use, "q" or "b".  The default is "q".  IImmpprroovvee--
+               mmeenntt bbyy tthhiiss mmoodduullee: You may also specify ''special'' values:
+               "a" will automatically choose recommended encoding to use (with
+               charset conversion if alternative charset is recommended: see
+               MIME::Charset); "s" will choose shorter one of either "q" or
+               "b".
 
-SEE ALSO
-    MIME::Charset, MIME::Tools
+           Field
+               Name of the mail field this string will be used in.  IImmpprroovvee--
+               mmeenntt bbyy tthhiiss mmoodduullee: Length of mail field name will be consid-
+               ered in the first line of encoded header.
 
-AUTHORS
-    The original version of function decode_mimewords() is derived from
-    MIME::Words module that was written by: Eryq (eryq@zeegee.com), ZeeGee
-    Software Inc (http://www.zeegee.com). David F. Skoll
-    (dfs@roaringpenguin.com) http://www.roaringpenguin.com
+           NNootteess oonn iimmpprroovveemmeenntt bbyy tthhiiss mmoodduullee: When RAW is an arrayref, adja-
+           cent encoded-words are concatenated.  Then they are splitted taking
+           care of character boundaries of multibyte sequences, when Uni-
+           code/multibyte support is enabled.  Portions for unencoded data
+           should include surrounding whitespace(s), or they will be merged
+           into adjoining encoded word(s).
 
-    Other stuff are rewritten or added by: Hatuka*nezumi - IKEDA Soji
-    <hatuka(at)nezumi.nu>.
+           IImmccoommppaattiibbiilliittyy wwiitthh MMIIMMEE::::WWoorrddss: MIME::Words takes care of natural
+           word separators (i.e. whitespaces) in the text to be encoded.  This
+           module will encode whole text (if encoding needed) not mentioning
+           whitespaces; encoded-words exceeding line length will be splitted
+           based only on their lengths.
 
-    All rights reserved. This program is free software; you can redistribute
-    it and/or modify it under the same terms as Perl itself.
+VVEERRSSIIOONN
+       Consult $VERSION variable.
 
+       Development versions of this module may be found at
+       <http://hatuka.nezumi.nu/repos/MIME-EncWords/>.
+
+SSEEEE AALLSSOO
+       MIME::Charset, MIME::Tools
+
+AAUUTTHHOORRSS
+       The original version of function _d_e_c_o_d_e___m_i_m_e_w_o_r_d_s_(_) is derived from
+       MIME::Words module that was written by:
+           Eryq (_e_r_y_q_@_z_e_e_g_e_e_._c_o_m), ZeeGee Software Inc
+       (_h_t_t_p_:_/_/_w_w_w_._z_e_e_g_e_e_._c_o_m).
+           David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpen-
+       guin.com
+
+       Other stuff are rewritten or added by:
+           Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
+
+       All rights reserved.  This program is free software; you can redis-
+       tribute it and/or modify it under the same terms as Perl itself.
+
+
+
+perl v5.8.5                       2006-10-22                       EncWords(3)
