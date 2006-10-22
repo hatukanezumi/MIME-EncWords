@@ -117,13 +117,14 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = "0.02";
+$VERSION = "0.03";
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
 my $PRINTABLE = "\\x21-\\x7E";
 my $NONPRINT = qr{[^$PRINTABLE]}; # Improvement: Unicode support.
 my $UNSAFE = qr{[^\x01-\x20$PRINTABLE]};
+my $WIDECHAR = qr{[^\x00-\xFF]};
 
 ### Max line length:
 my $MAXLINELEN = 76;
@@ -196,6 +197,7 @@ and probably I<not> what you want, but if you know that all charsets
 in the ENCODED string are identical, it might be useful to you.
 (Before you use this, please see L<MIME::WordDecoder/unmime>,
 which is probably what you want.)
+B<Note>: See also "Charset" option below.
 
 In the event of a syntax error, $@ will be set to a description
 of the error, but parsing will continue as best as possible (so as to
@@ -248,13 +250,10 @@ sub decode_mimewords {
     my @tokens;
     $@ = '';           ### error-return
 
-    ### Collapse boundaries between adjacent encoded words:
-    $encstr =~ s{(\?\=)\s*(\=\?)}{$1$2}gs;
-    pos($encstr) = 0;
-    ### print STDOUT "ENC = [", $encstr, "]\n";
-
     ### Decode:
     my ($word, $charset, $encoding, $enc, $dec);
+    my $spc = '';
+    pos($encstr) = 0;
     while (1) {
         last if (pos($encstr) >= length($encstr));
         my $pos = pos($encstr);               ### save it
@@ -265,8 +264,10 @@ sub decode_mimewords {
                              \?([bq])      #  "?" + encoding +
                              \?([^?]+)     #  "?" + data maybe with spcs +
                              \?=           #  "?="
+			     ([\r\n\t ]*)
                             }xgi) {
 	    ($word, $charset, $encoding, $enc) = ($&, $1, lc($2), $3);
+	    my $tspc = $4;
 	    if ($encoding eq 'q') {
 		$dec = _decode_Q($enc);
 	    } else {
@@ -274,7 +275,8 @@ sub decode_mimewords {
 	    }
 	    unless (defined $dec) {
 		$@ .= qq|Illegal sequence in "$word" (pos $pos)\n|;
-		push @tokens, [$word];
+		push @tokens, [$spc.$word];
+		$spc = '';
 		next;
 	    }
 
@@ -285,6 +287,7 @@ sub decode_mimewords {
 	    } else {
 		push @tokens, [$dec, $charset];
 	    }
+	    $spc = $tspc;
             next;
         }
 
@@ -293,26 +296,30 @@ sub decode_mimewords {
         pos($encstr) = $pos;               # reset the pointer.
         if ($encstr =~ m{\G=\?}xg) {
             $@ .= qq|unterminated "=?..?..?=" in "$encstr" (pos $pos)\n|;
-            push @tokens, ['=?'];
+            push @tokens, [$spc.'=?'];
+	    $spc = '';
             next;
         }
 
         ### Case 3: are we looking at ordinary text?
         pos($encstr) = $pos;               # reset the pointer.
         if ($encstr =~ m{\G                # from where we left off...
-                         ([\x00-\xFF]*?    #   shortest possible string,
+                         (.*?              #   shortest possible string,
                           \n*)             #   followed by 0 or more NLs,
                          (?=(\Z|=\?))      # terminated by "=?" or EOS
-                        }xg) {
-            length($1) or die "MIME::EncWords: internal logic err: empty token\n";
-            push @tokens, [$1];
+                        }xgs) {
+            length($1) or croak "MIME::EncWords: internal logic err: empty token\n";
+            push @tokens, [$spc.$1];
+	    $spc = '';
             next;
         }
 
         ### Case 4: bug!
-        die "MIME::EncWords: unexpected case:\n($encstr) pos $pos\n\t".
+        croak "MIME::EncWords: unexpected case:\n($encstr) pos $pos\n\t".
             "Please alert developer.\n";
     }
+    push @tokens, [$spc] if $spc;
+
     return (wantarray ? @tokens : join('',map {
 	&_convert($_->[0], $_->[1], $cset)
 	} @tokens));
@@ -337,7 +344,11 @@ sub _convert($$$) {
     my $preserveerr = $@;
 
     my $converted = $s;
-    if ($cset eq "_UNICODE_") {
+    if (is_utf8($s) or $s =~ $WIDECHAR) {
+	if ($cset ne "_UNICODE_") {
+	    $converted = encode($cset, $converted);
+	}
+    } elsif ($cset eq "_UNICODE_") {
 	if (!resolve_alias($charset)) {
 	    if ($s =~ $UNSAFE) {
 		$@ = '';
@@ -423,9 +434,9 @@ Returns the encoded string.
 
 B<Improvement by this module>:
 RAW may be a Unicode string when Unicode/multibyte support is enabled
-(see L<MIME::Charset/"USE_ENCODE">).
+(see L<MIME::Charset/USE_ENCODE>).
 Furthermore, RAW may be a reference to that returned
-by L<"decode_mimewords"> on array context.  In latter case L<"Charset">
+by L<"decode_mimewords"> on array context.  In latter case "Charset"
 option (see below) will be overridden.
 
 B<Change by this module>:
@@ -445,12 +456,12 @@ a.k.a. "Latin-1".
 =item Detect7bit
 
 B<Improvement by this modlue>:
-When L<"Encoding"> (see below) is specified as C<"a"> and L<"Charset">
+When "Encoding" option (see below) is specified as C<"a"> and "Charset"
 option is unknown, try to detect 7-bit charset on given RAW string.
 Default is C<"YES">.
 When Unicode/multibyte support is disabled,
 this option will not have any effects
-(see L<MIME::Charset/"USE_ENCODE">).
+(see L<MIME::Charset/USE_ENCODE>).
 
 =item Encoding
 
@@ -494,9 +505,11 @@ sub encode_mimewords  {
 	my ($s, $cset) = @$_;
 	my $enc;
 
+	next unless length($s);
+
 	# Unicode string should be encoded by given charset.
 	# Unsupported charset will be fallbacked to UTF-8.
-	if (is_utf8($s)) {
+	if (is_utf8($s) or $s =~ $WIDECHAR) {
 	    unless (resolve_alias($cset)) {
 		if ($s !~ $UNSAFE) {
 		    $cset = "US-ASCII";
@@ -772,7 +785,7 @@ L<MIME::Words> module that was written by:
     Eryq (F<eryq@zeegee.com>), ZeeGee Software Inc (F<http://www.zeegee.com>).
     David F. Skoll (dfs@roaringpenguin.com) http://www.roaringpenguin.com
 
-Other stuffs are rewritten or added by:
+Other stuff are rewritten or added by:
     Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
 
 All rights reserved.  This program is free software; you can redistribute
