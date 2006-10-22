@@ -152,17 +152,7 @@ PUBLIC INTERFACE
         Unicode/multibyte support is enabled (see "USE_ENCODE" in
         MIME::Charset). Furthermore, RAW may be a reference to that returned
         by "decode_mimewords" on array context. In latter case "Charset"
-        option (see below) will be overridden.
-
-        Change by this module: Adjacent encoded-words are concatenated. Then
-        they are splitted taking care of character boundaries of multibyte
-        sequences, when Unicode/multibyte support is enabled.
-
-        Imcompatibility with MIME::Words: MIME::Words takes care of natural
-        word separators (i.e. whitespaces) in the text to be encoded. This
-        module will encode whole text (if encoding needed) not mentioning
-        whitespaces; encoded-words exceeding line length will be splitted
-        based only on their lengths.
+        option (see below) will be overridden (see also notes below).
 
         Any arguments past the RAW string are taken to define a hash of
         options:
@@ -190,6 +180,25 @@ PUBLIC INTERFACE
             Name of the mail field this string will be used in. Improvement
             by this module: Length of mail field name will be considered in
             the first line of encoded header.
+
+        Notes on improvement by this module: When RAW is an arrayref,
+        adjacent encoded-words are concatenated. Then they are splitted
+        taking care of character boundaries of multibyte sequences, when
+        Unicode/multibyte support is enabled. Portions for unencoded data
+        should include surrounding whitespace(s), or they will be merged
+        into adjoining encoded word(s).
+
+        Imcompatibility with MIME::Words: MIME::Words takes care of natural
+        word separators (i.e. whitespaces) in the text to be encoded. This
+        module will encode whole text (if encoding needed) not mentioning
+        whitespaces; encoded-words exceeding line length will be splitted
+        based only on their lengths.
+
+VERSION
+    Consult $VERSION variable.
+
+    Development versions of this module may be found at
+    <http://hatuka.nezumi.nu/repos/MIME-EncWords/>.
 
 SEE ALSO
     MIME::Charset, MIME::Tools
