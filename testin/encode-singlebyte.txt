@@ -1,6 +1,6 @@
 GOOD
 "Oc\xE9 3165 Network Copier down for maintenance"
-=?ISO-8859-1?Q?Oc=E9_3165_Network_Copier_down_for_maintenance?=
+=?ISO-8859-1?Q?Oc=E9?= 3165 Network Copier down for maintenance
 
 GOOD
 "Keith Moore <moore\@cs.utk.edu>"

@@ -118,7 +118,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '0.032';
+$VERSION = '0.040';
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
@@ -475,6 +475,22 @@ B<Improvement by this module>:
 Length of mail field name will be considered in the first line of
 encoded header.
 
+=item Minimal
+
+B<Improvement by this module>:
+Takes care of natural word separators (i.e. whitespaces)
+in the text to be encoded.
+If C<"NO"> is specified, this module will encode whole text
+(if encoding needed) not regarding whitespaces;
+encoded-words exceeding line length will be splitted based only on their
+lengths.
+Default is C<"YES">.
+
+B<Note>:
+As of release 0.040, default has been changed to C<"YES"> to ensure
+compatibility with MIME::Words.
+On earlier releases, this option was fixed to be C<"NO">.
+
 =back
 
 B<Notes on improvement by this module>:
@@ -485,13 +501,6 @@ support is enabled.
 Portions for unencoded data should include surrounding whitespace(s), or
 they will be merged into adjoining encoded word(s).
 
-B<Imcompatibility with MIME::Words>:
-L<MIME::Words> takes care of natural word separators (i.e. whitespaces)
-in the text to be encoded.  This module will encode whole text
-(if encoding needed) not mentioning whitespaces;
-encoded-words exceeding line length will be splitted based only on their
-lengths.
-
 =cut
 
 sub encode_mimewords  {
@@ -501,13 +510,19 @@ sub encode_mimewords  {
     my $detect7bit = uc($params{'Detect7bit'} || "YES");
     my $encoding = uc($params{'Encoding'});
     my $header_name = $params{'Field'};
+    my $minimal = uc($params{'Minimal'} || "YES");
     my $firstlinelen = $MAXLINELEN;
     if ($header_name) {
 	$firstlinelen -= length($header_name.': ');
     }
 
     unless (ref($words) eq "ARRAY") {
-	$words = [[$words, $charset]];
+	if ($minimal eq "YES") {
+	    my @words = map {[$_, $charset]} split(/((?:\A|[\t ])[\t \x21-\x7E]+(?:[\t ]|\Z))/, $words);
+	    $words = \@words;
+	} else {
+	    $words = [[$words, $charset]];
+	}
     }
 
     # Translate / concatenate words.

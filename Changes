@@ -1,3 +1,10 @@
+2006-11-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 0.040.
+	* encode_mimewords(): New option 'Minimal' to control
+	  minimal encoding behavior.
+	  NOTE: Default behavior was changed from "NO" to "YES".
+
 2006-10-22	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 0.032.
