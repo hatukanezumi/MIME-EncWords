@@ -1,12 +1,12 @@
 NAME
-    MIME::EncWords - deal with RFC-1522 encoded words (improved)
+    MIME::EncWords - deal with RFC 2047 encoded words (improved)
 
 SYNOPSIS
     *MIME::EncWords is aimed to be another implimentation of MIME::Words so
-    that it will achive more exact conformance with MIME specifications.
-    Additionally, it contains some improvements. Following synopsis and
-    descriptions are inherited from its inspirer, with description of
-    improvements and clarifications added.*
+    that it will achive more exact conformance with RFC 2047 (former RFC
+    1522) specifications. Additionally, it contains some improvements.
+    Following synopsis and descriptions are inherited from its inspirer,
+    with description of improvements and clarifications added.*
 
     Before reading further, you should see MIME::Tools to make sure that you
     understand where this module fits into the grand scheme of things. Go
@@ -110,6 +110,13 @@ PUBLIC INTERFACE
             Note: This feature is still information-lossy, *except* when
             "_UNICODE_" is specified.
 
+        Detect7bit
+            Improvement by this modlue: Try to detect 7-bit charset on
+            unencoded portions. Default is "YES". When Unicode/multibyte
+            support is disabled, this option will not have any effects (see
+            "USE_ENCODE" in MIME::Charset). Note: This feature was
+            introduced at release 1.000.
+
         Field
             Name of the mail field this string came from. *Currently
             ignored.*
@@ -181,18 +188,29 @@ PUBLIC INTERFACE
             by this module: Length of mail field name will be considered in
             the first line of encoded header.
 
+        Minimal
+            Improvement by this module: Takes care of natural word
+            separators (i.e. whitespaces) in the text to be encoded. If "NO"
+            is specified, this module will encode whole text (if encoding
+            needed) not regarding whitespaces; encoded-words exceeding line
+            length will be splitted based only on their lengths. Default is
+            "YES".
+
+            Note: As of release 0.040, default has been changed to "YES" to
+            ensure compatibility with MIME::Words. On earlier releases, this
+            option was fixed to be "NO".
+
+        Replacement
+            Improvement by this module: See "ERROR HANDLING" in
+            MIME::Charset. Note: This feature was introduced at release
+            1.000.
+
         Notes on improvement by this module: When RAW is an arrayref,
         adjacent encoded-words are concatenated. Then they are splitted
         taking care of character boundaries of multibyte sequences, when
         Unicode/multibyte support is enabled. Portions for unencoded data
         should include surrounding whitespace(s), or they will be merged
         into adjoining encoded word(s).
-
-        Imcompatibility with MIME::Words: MIME::Words takes care of natural
-        word separators (i.e. whitespaces) in the text to be encoded. This
-        module will encode whole text (if encoding needed) not mentioning
-        whitespaces; encoded-words exceeding line length will be splitted
-        based only on their lengths.
 
 VERSION
     Consult $VERSION variable.

@@ -4,13 +4,14 @@ use 5.005;
 
 =head1 NAME
 
-MIME::EncWords - deal with RFC-1522 encoded words (improved)
+MIME::EncWords - deal with RFC 2047 encoded words (improved)
 
 =head1 SYNOPSIS
 
 I<L<MIME::EncWords> is aimed to be another implimentation
 of L<MIME::Words> so that it will achive more exact conformance with
-MIME specifications.  Additionally, it contains some improvements.
+RFC 2047 (former RFC 1522) specifications.  Additionally, it contains
+some improvements.
 Following synopsis and descriptions are inherited from its inspirer,
 with description of improvements and clarifications added.>
 
@@ -118,7 +119,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '0.040';
+$VERSION = '1.000';
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
@@ -225,6 +226,17 @@ B<Note>:
 This feature is still information-lossy, I<except> when C<"_UNICODE_"> is
 specified.
 
+=item Detect7bit
+
+B<Improvement by this modlue>:
+Try to detect 7-bit charset on unencoded portions.
+Default is C<"YES">.
+When Unicode/multibyte support is disabled,
+this option will not have any effects
+(see L<MIME::Charset/USE_ENCODE>).
+B<Note>:
+This feature was introduced at release 1.000.
+
 =item Field
 
 Name of the mail field this string came from.  I<Currently ignored.>
@@ -248,6 +260,7 @@ sub decode_mimewords {
     my $encstr = shift;
     my %params = @_;
     my $cset = $params{"Charset"};
+    my $detect7bit = uc($params{'Detect7bit'} || "YES");
     my @tokens;
     $@ = '';           ### error-return
 
@@ -320,6 +333,19 @@ sub decode_mimewords {
             "Please alert developer.\n";
     }
     push @tokens, [$spc] if $spc;
+
+    # Detect 7-bit charset
+    if ($detect7bit ne "NO") {
+	foreach my $t (@tokens) {
+	    unless ($t->[1]) {
+		my $charset = &MIME::Charset::_detect_7bit_charset($t->[0]);
+		if ($charset and $charset ne &MIME::Charset::default()) {
+		    $t->[0] =~ s/[\r\n\t ]+/ /g;
+		    $t->[1] = $charset;
+		}
+	    }
+	}
+    }
 
     return (wantarray ? @tokens : join('',map {
 	&_convert($_->[0], $_->[1], $cset)
@@ -404,13 +430,13 @@ sub encode_mimeword {
     if ($encoding eq 'Q') {
 	$encstr = &_encode_Q($word);
     } elsif ($encoding eq "S") {
-	if (encoded_header_len($word, "B", $charset) <
-	    encoded_header_len($word, "Q", $charset)) {
+	my ($B, $Q) = (&_encode_B($word), &_encode_Q($word));
+	if (length($B) < length($Q)) {
 	    $encoding = "B";
-	    $encstr = &_encode_B($word);
+	    $encstr = $B;
 	} else {
 	    $encoding = "Q";
-	    $encstr = &_encode_Q($word);
+	    $encstr = $Q;
 	}
     } else { # "B"
 	$encoding = "B";
@@ -491,6 +517,13 @@ As of release 0.040, default has been changed to C<"YES"> to ensure
 compatibility with MIME::Words.
 On earlier releases, this option was fixed to be C<"NO">.
 
+=item Replacement
+
+B<Improvement by this module>:
+See L<MIME::Charset/ERROR HANDLING>.
+B<Note>:
+This feature was introduced at release 1.000.
+
 =back
 
 B<Notes on improvement by this module>:
@@ -511,6 +544,7 @@ sub encode_mimewords  {
     my $encoding = uc($params{'Encoding'});
     my $header_name = $params{'Field'};
     my $minimal = uc($params{'Minimal'} || "YES");
+    my $replacement = uc($params{'Replacement'} || 'DEFAULT');
     my $firstlinelen = $MAXLINELEN;
     if ($header_name) {
 	$firstlinelen -= length($header_name.': ');
@@ -539,18 +573,25 @@ sub encode_mimewords  {
 	    unless (resolve_alias($cset)) {
 		if ($s !~ $UNSAFE) {
 		    $cset = "US-ASCII";
+		} elsif ($replacement =~ '^(CROAK|STRICT)$') {
+		    croak "MIME::EncWords: unsupported charset: $cset\n";
 		} else {
 		    $cset = "UTF-8";
 		}
 	    }
-	    $s = encode($cset, $s);
+	    if ($replacement =~ /^(CROAK|STRICT)$/) {
+		$s = encode($cset, $s, FB_CROAK());
+	    } else {
+		$s = encode($cset, $s);
+	    }
 	}
 
 	# Determine charset and encoding.
 	if ($encoding eq "A") {
 	    ($s, $cset, $enc) =
 		header_encode($s, $cset || $charset,
-			      Detect7bit => $detect7bit);
+			      Detect7bit => $detect7bit,
+			      Replacement => $replacement);
 	} else {
 	    $cset ||= ($charset || ($s !~ $UNSAFE)? "US-ASCII": "ISO-8859-1");
 	    $enc = $encoding ||

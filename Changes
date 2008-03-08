@@ -1,3 +1,9 @@
+2008-03-08	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.000.
+	* decode_mimewords(): New option 'Detect7bit', enabled by default.
+	* encode_mimewords(): New option 'Replacement.
+
 2006-11-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 0.040.
