@@ -119,7 +119,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.000';
+$VERSION = '1.001';
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
@@ -594,8 +594,15 @@ sub encode_mimewords  {
 			      Replacement => $replacement);
 	} else {
 	    $cset ||= ($charset || ($s !~ $UNSAFE)? "US-ASCII": "ISO-8859-1");
-	    $enc = $encoding ||
-		(($s !~ $UNSAFE and $cset eq "US-ASCII")? undef: "Q");
+	    my @spec =
+		header_encode($s, $cset,
+			      Detect7bit => $detect7bit,
+			      Replacement => $replacement);
+	    if ($spec[0] eq $s and $spec[1] eq "US-ASCII" and !$spec[2]) {
+		($cset, $enc) = ("US-ASCII", undef);
+	    } else {
+	        $enc = $encoding || "Q";
+            }
 	}
 
 	# Concatenate adjacent ``words'' so that multibyte sequences will
