@@ -1,12 +1,9 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => ($] >= 5.008001)? 20: 10 }
+BEGIN { plan tests => ($^V ge v5.8.1)? 20: 10 }
 
-my $_UNICODE = ($] >= 5.008001);
-if ($_UNICODE) {
-    use Encode;
-}
+my $_UNICODE = ($^V ge v5.8.1);
 
 use MIME::EncWords qw(decode_mimewords);
 

@@ -13,7 +13,8 @@ of L<MIME::Words> so that it will achive more exact conformance with
 RFC 2047 (former RFC 1522) specifications.  Additionally, it contains
 some improvements.
 Following synopsis and descriptions are inherited from its inspirer,
-with description of improvements and clarifications added.>
+then added descriptions on improvements or changes and
+clarifications.>
 
 Before reading further, you should see L<MIME::Tools> to make sure that
 you understand where this module fits into the grand scheme of things.
@@ -119,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.001';
+$VERSION = '1.002';
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
@@ -228,7 +229,7 @@ specified.
 
 =item Detect7bit
 
-B<Improvement by this modlue>:
+B<Improvement by this module>:
 Try to detect 7-bit charset on unencoded portions.
 Default is C<"YES">.
 When Unicode/multibyte support is disabled,
@@ -265,7 +266,7 @@ sub decode_mimewords {
     $@ = '';           ### error-return
 
     ### Decode:
-    my ($word, $charset, $encoding, $enc, $dec);
+    my ($word, $charset, $language, $encoding, $enc, $dec);
     my $spc = '';
     pos($encstr) = 0;
     while (1) {
@@ -282,6 +283,15 @@ sub decode_mimewords {
                             }xgi) {
 	    ($word, $charset, $encoding, $enc) = ($&, $1, lc($2), $3);
 	    my $tspc = $4;
+
+	    # RFC 2231 section 5 extension
+	    if ($charset =~ s/^([^\*]*)\*(.*)/$1/) {
+		$language = $2 || undef;
+		$charset ||= undef;
+	    } else {
+		$language = undef;
+	    }
+
 	    if ($encoding eq 'q') {
 		$dec = _decode_Q($enc);
 	    } else {
@@ -296,10 +306,16 @@ sub decode_mimewords {
 
 	    if (scalar(@tokens) and
 		lc($charset) eq lc(${$tokens[-1]}[1]) and
-		resolve_alias($charset)) { # Concat words if possible.
+		resolve_alias($charset) and
+		(!${tokens[-1]}[2] and !$language or
+		 lc(${tokens[-1]}[2]) eq lc($language))) { # Concat words if possible.
 		${$tokens[-1]}[0] .= $dec;
-	    } else {
+	    } elsif ($language) {
+		push @tokens, [$dec, $charset, $language];
+	    } elsif ($charset) {
 		push @tokens, [$dec, $charset];
+	    } else {
+		push @tokens, [$dec];
 	    }
 	    $spc = $tspc;
             next;
@@ -477,7 +493,7 @@ a.k.a. "Latin-1".
 
 =item Detect7bit
 
-B<Improvement by this modlue>:
+B<Improvement by this module>:
 When "Encoding" option (see below) is specified as C<"a"> and "Charset"
 option is unknown, try to detect 7-bit charset on given RAW string.
 Default is C<"YES">.
@@ -592,17 +608,11 @@ sub encode_mimewords  {
 		header_encode($s, $cset || $charset,
 			      Detect7bit => $detect7bit,
 			      Replacement => $replacement);
+	} elsif ($s =~ $UNSAFE) {
+	    $cset ||= ($charset || "ISO-8859-1");
+	    $enc = $encoding || "Q";
 	} else {
-	    $cset ||= ($charset || ($s !~ $UNSAFE)? "US-ASCII": "ISO-8859-1");
-	    my @spec =
-		header_encode($s, $cset,
-			      Detect7bit => $detect7bit,
-			      Replacement => $replacement);
-	    if ($spec[0] eq $s and $spec[1] eq "US-ASCII" and !$spec[2]) {
-		($cset, $enc) = ("US-ASCII", undef);
-	    } else {
-	        $enc = $encoding || "Q";
-            }
+	    ($cset, $enc) = ("US-ASCII", undef);
 	}
 
 	# Concatenate adjacent ``words'' so that multibyte sequences will

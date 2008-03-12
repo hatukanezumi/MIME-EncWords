@@ -6,7 +6,7 @@ SYNOPSIS
     that it will achive more exact conformance with RFC 2047 (former RFC
     1522) specifications. Additionally, it contains some improvements.
     Following synopsis and descriptions are inherited from its inspirer,
-    with description of improvements and clarifications added.*
+    then added descriptions on improvements or changes and clarifications.*
 
     Before reading further, you should see MIME::Tools to make sure that you
     understand where this module fits into the grand scheme of things. Go
@@ -111,7 +111,7 @@ PUBLIC INTERFACE
             "_UNICODE_" is specified.
 
         Detect7bit
-            Improvement by this modlue: Try to detect 7-bit charset on
+            Improvement by this module: Try to detect 7-bit charset on
             unencoded portions. Default is "YES". When Unicode/multibyte
             support is disabled, this option will not have any effects (see
             "USE_ENCODE" in MIME::Charset). Note: This feature was
@@ -169,7 +169,7 @@ PUBLIC INTERFACE
             'ISO-8859-1', a.k.a. "Latin-1".
 
         Detect7bit
-            Improvement by this modlue: When "Encoding" option (see below)
+            Improvement by this module: When "Encoding" option (see below)
             is specified as "a" and "Charset" option is unknown, try to
             detect 7-bit charset on given RAW string. Default is "YES". When
             Unicode/multibyte support is disabled, this option will not have
