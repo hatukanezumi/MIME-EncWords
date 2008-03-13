@@ -1,6 +1,6 @@
-2008-03-13	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-03-14	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
-	* Release 1.002.
+	* Release 1.003.
 	* encode_mimewords(): Fix: Minimal option won't affect when Encoding
 	  options is not "A".
 	* decode_mimewords(): Support RFC 2231 section 5 extension.

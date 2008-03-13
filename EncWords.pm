@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.002';
+$VERSION = '1.003';
 
 ### Nonprintables (controls + x7F + 8bit):
 #my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
@@ -579,6 +579,7 @@ sub encode_mimewords  {
     my @triplets;
     foreach (@$words) {
 	my ($s, $cset) = @$_;
+	$cset &&= uc($cset);
 	my $enc;
 
 	next unless length($s);
@@ -608,11 +609,17 @@ sub encode_mimewords  {
 		header_encode($s, $cset || $charset,
 			      Detect7bit => $detect7bit,
 			      Replacement => $replacement);
-	} elsif ($s =~ $UNSAFE) {
-	    $cset ||= ($charset || "ISO-8859-1");
-	    $enc = $encoding || "Q";
-	} else {
-	    ($cset, $enc) = ("US-ASCII", undef);
+	} elsif ($cset ne "US-ASCII") {
+	    $cset ||= uc($charset || "ISO-8859-1");
+	    my $u = $s;
+	    eval {
+		$u = decode($cset, $u, 0);
+	    };
+	    if ($@ or $u =~ $UNSAFE) {
+		$enc = $encoding || "Q";
+	    } else {
+		($cset, $enc) = ("US-ASCII", undef);
+	    }
 	}
 
 	# Concatenate adjacent ``words'' so that multibyte sequences will
