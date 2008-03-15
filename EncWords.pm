@@ -392,7 +392,7 @@ sub decode_mimewords {
 #------------------------------
 
 # _convert RAW, FROMCHARSET, TOCHARSET, MAPPING
-#     Private: used by encode_mimewords() to convert string by other charset
+#     Private: used by decode_mimewords() to convert string by other charset
 #     or to decode to Unicode.
 #     When source charset is unknown and Unicode string is requested, at first
 #     try well-formed UTF-8 then fallback to ISO-8859-1 so that almost all
@@ -515,7 +515,17 @@ RAW may be a Unicode string when Unicode/multibyte support is enabled
 (see L<MIME::Charset/USE_ENCODE>).
 Furthermore, RAW may be a reference to that returned
 by L<"decode_mimewords"> on array context.  In latter case "Charset"
-option (see below) will be overridden (see also notes below).
+option (see below) will be overridden (see also a note below).
+
+B<Note>:
+B<*>
+When RAW is an arrayref,
+adjacent encoded-words (i.e. elements having non-ASCII charset element)
+are concatenated.  Then they are splitted taking
+care of character boundaries of multibyte sequences when Unicode/multibyte
+support is enabled.
+Portions for unencoded data should include surrounding whitespace(s), or
+they will be merged into adjoining encoded word(s).
 
 Any arguments past the RAW string are taken to define a hash of options:
 
@@ -590,14 +600,6 @@ B<Note>:
 This feature was introduced at release 1.000.
 
 =back
-
-B<Notes on improvement by this module>:
-When RAW is an arrayref,
-adjacent encoded-words are concatenated.  Then they are splitted taking
-care of character boundaries of multibyte sequences, when Unicode/multibyte
-support is enabled.
-Portions for unencoded data should include surrounding whitespace(s), or
-they will be merged into adjoining encoded word(s).
 
 =cut
 
