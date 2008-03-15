@@ -59,6 +59,7 @@ L<MIME::EncWords>
 # $Config->{Charset} = 'ISO-8859-1';
 # $Config->{Encoding} = 'A';
 # $Config->{Field} = undef;
+# $Config->{MaxLineLen} = 76;
 # $Config->{Minimal} = 'YES';
 
 1;

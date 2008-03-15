@@ -102,7 +102,7 @@ use Carp qw(croak);
 use MIME::Base64;
 use MIME::Charset qw(:trans);
 
-my @ENCODE_SUBS = qw(FB_CROAK decode encode from_to is_utf8 resolve_alias);
+my @ENCODE_SUBS = qw(FB_CROAK decode encode is_utf8 resolve_alias);
 if (MIME::Charset::USE_ENCODE) {
     eval "use ".MIME::Charset::USE_ENCODE." \@ENCODE_SUBS;";
 } else {
@@ -267,7 +267,10 @@ This feature was introduced at release 1.000.
 =item Mapping
 B<**>
 
-NOT YET IMPLEMENTED
+In scalar context, specify mappings actually used for charset names.
+C<"EXTENDED"> uses extended mappings.
+C<"STANDARD"> uses standardized strict mappings.
+Default is C<"EXTENDED">.
 
 =back
 
@@ -276,9 +279,10 @@ NOT YET IMPLEMENTED
 sub decode_mimewords {
     my $encstr = shift;
     my %params = @_;
-    my $cset = $params{"Charset"};
+    my $cset = $params{"Charset"} || $Config->{Charset};
     my $detect7bit = uc($params{'Detect7bit'} || $Config->{Detect7bit});
     my $mapping = uc($params{'Mapping'} || $Config->{Mapping});
+    $cset = MIME::Charset->new($cset, Mapping => $mapping);
     my @tokens;
     $@ = '';           ### error-return
 
@@ -395,23 +399,34 @@ sub decode_mimewords {
 #     non-ASCII bytes will be preserved.
 sub _convert($$$$) {
     my $s = shift;
-    my $charset = shift || "";
+    my $charset = shift;
     my $cset = shift;
     my $mapping = shift;
     return $s unless MIME::Charset::USE_ENCODE;
-    return $s unless $cset;
-    return $s if uc($charset) eq uc($cset);
+    return $s unless $cset->as_string;
 
     my $preserveerr = $@;
 
-    my $converted = $s;
+    $charset = MIME::Charset->new($charset, Mapping => $mapping);
+    if ($charset->as_string and $charset->as_string eq $cset->as_string) {
+	$@ = $preserveerr;
+	return $s;
+    }
+    # build charset object to transform string from $charset to $cset.
+    $charset->{OutputCharset} = $cset->as_string;
+    $charset->{Encoder} = $cset->decoder;
+
+    my $converted;
     if (is_utf8($s) or $s =~ $WIDECHAR) {
-	if ($cset ne "_UNICODE_") {
-	    $converted = encode($cset, $converted);
+	if ($charset->output_charset eq "_UNICODE_") {
+	    $converted = $s;
+	} else {
+	    $converted = $charset->encode($s);
 	}
-    } elsif ($cset eq "_UNICODE_") {
-	if (!resolve_alias($charset)) {
+    } elsif ($charset->output_charset eq "_UNICODE_") {
+	if (!$charset->decoder) {
 	    if ($s =~ $UNSAFE) {
+		$converted = $s;
 		$@ = '';
 		eval {
 		    $converted = decode("UTF-8", $converted, FB_CROAK());
@@ -422,10 +437,12 @@ sub _convert($$$$) {
 		}
 	    }
 	} else {
-	    $converted = decode($charset, $converted);
+	    $converted = $charset->decode($s);
 	}
-    } elsif (resolve_alias($charset)) {
-	from_to($converted, $charset, $cset);
+    } elsif ($charset->decoder) {
+	$converted = $charset->encode($s);
+    } else {
+	$converted = $s;
     }
 
     $@ = $preserveerr;
