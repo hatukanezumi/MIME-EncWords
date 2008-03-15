@@ -1,3 +1,14 @@
+2008-03-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.004.
+	* New feature: MIME/EncWords/Defaults.pm: If it exists,
+	  built-in defaults for methods can be overridden.
+	* Change: encode_mimewords(): Built-in default for "Encoding"
+	  parameter has been changed from "Q" to "A".
+	* encode_mimewords(): New option "MaxLineLen" which defaults
+	  to 76.
+	* Clean-up PODs and codes.
+
 2008-03-14	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.003.

@@ -6,7 +6,8 @@ SYNOPSIS
     that it will achive more exact conformance with RFC 2047 (former RFC
     1522) specifications. Additionally, it contains some improvements.
     Following synopsis and descriptions are inherited from its inspirer,
-    then added descriptions on improvements or changes and clarifications.*
+    then added descriptions on improvements (‡) or changes and
+    clarifications (†).*
 
     Before reading further, you should see MIME::Tools to make sure that you
     understand where this module fits into the grand scheme of things. Go
@@ -82,53 +83,46 @@ PUBLIC INTERFACE
                 print "", ($_[1] || 'US-ASCII'), ": ", $_[0], "\n";
             }
 
+        ‡ However, adjacent encoded-words with same charset will be
+        concatenated to handle multibyte sequences safely.
+
+        † Whitespaces surrounding unencoded data will not be stripped so
+        that compatibility with MIME::Words will be ensured.
+
         In a scalar context, joins the "data" elements of the above list
         together, and returns that. *Warning: this is information-lossy,*
         and probably *not* what you want, but if you know that all charsets
         in the ENCODED string are identical, it might be useful to you.
         (Before you use this, please see "unmime" in MIME::WordDecoder,
-        which is probably what you want.) Note: See also "Charset" option
-        below.
+        which is probably what you want.) ‡ See also "Charset" option below.
 
         In the event of a syntax error, $@ will be set to a description of
         the error, but parsing will continue as best as possible (so as to
         get *something* back when decoding headers). $@ will be false if no
         error was detected.
 
+        † Malformed base64 encoded-words will be kept encoded. In this case
+        $@ will be set.
+
         Any arguments past the ENCODED string are taken to define a hash of
-        options:
+        options. ‡ When Unicode/multibyte support is disabled (see
+        "USE_ENCODE" in MIME::Charset), these options will not have any
+        effects.
 
-        Charset
-            Improvement by this module: Name of character set by which data
-            elements in scalar context will be converted. If this option is
-            specified as special value "_UNICODE_", returned value will be
-            Unicode string.
-
-            When Unicode/multibyte support is disabled (see "USE_ENCODE" in
-            MIME::Charset), this option will not have any effects.
+        Charset ‡
+            Name of character set by which data elements in scalar context
+            will be converted. If this option is specified as special value
+            "_UNICODE_", returned value will be Unicode string.
 
             Note: This feature is still information-lossy, *except* when
             "_UNICODE_" is specified.
 
-        Detect7bit
-            Improvement by this module: Try to detect 7-bit charset on
-            unencoded portions. Default is "YES". When Unicode/multibyte
-            support is disabled, this option will not have any effects (see
-            "USE_ENCODE" in MIME::Charset). Note: This feature was
-            introduced at release 1.000.
+        Detect7bit ‡
+            Try to detect 7-bit charset on unencoded portions. Default is
+            "YES". Note: This feature was introduced at release 1.000.
 
-        Field
-            Name of the mail field this string came from. *Currently
-            ignored.*
-
-        Improvement by this module: Adjacent encoded-words with same charset
-        will be concatenated to handle multibyte sequences safely.
-
-        Change by this module: Malformed base64 encoded-words will be kept
-        encoded. In this case $@ will be set.
-
-        Compatibility with MIME::Words: Whitespaces surrounding unencoded
-        data will not be stripped.
+        Mapping ‡
+            NOT YET IMPLEMENTED
 
     encode_mimeword RAW, [ENCODING], [CHARSET]
         *Function.* Encode a single RAW "word" that has unsafe characters.
@@ -137,14 +131,13 @@ PUBLIC INTERFACE
             ### Encode "<<Franc,ois>>":
             $encoded = encode_mimeword("\xABFran\xE7ois\xBB");
 
-        You may specify the ENCODING ("Q" or "B"), which defaults to "Q".
-        Improvement by this module: You may also specify it as ``special''
-        value: "S" to choose shorter one of either "Q" or "B".
+        You may specify the ENCODING ("Q" or "B"), which defaults to "Q". ‡
+        You may also specify it as ``special'' value: "S" to choose shorter
+        one of either "Q" or "B".
 
         You may specify the CHARSET, which defaults to "iso-8859-1".
 
-        Change by this module: Spaces will be escaped with ``_'' by "Q"
-        encoding.
+        † Spaces will be escaped with ``_'' by "Q" encoding.
 
     encode_mimewords RAW, [OPTS]
         *Function.* Given a RAW string, try to find and encode all "unsafe"
@@ -155,11 +148,11 @@ PUBLIC INTERFACE
 
         Returns the encoded string.
 
-        Improvement by this module: RAW may be a Unicode string when
-        Unicode/multibyte support is enabled (see "USE_ENCODE" in
-        MIME::Charset). Furthermore, RAW may be a reference to that returned
-        by "decode_mimewords" on array context. In latter case "Charset"
-        option (see below) will be overridden (see also notes below).
+        ‡ RAW may be a Unicode string when Unicode/multibyte support is
+        enabled (see "USE_ENCODE" in MIME::Charset). Furthermore, RAW may be
+        a reference to that returned by "decode_mimewords" on array context.
+        In latter case "Charset" option (see below) will be overridden (see
+        also notes below).
 
         Any arguments past the RAW string are taken to define a hash of
         options:
@@ -168,42 +161,43 @@ PUBLIC INTERFACE
             Encode all unsafe stuff with this charset. Default is
             'ISO-8859-1', a.k.a. "Latin-1".
 
-        Detect7bit
-            Improvement by this module: When "Encoding" option (see below)
-            is specified as "a" and "Charset" option is unknown, try to
-            detect 7-bit charset on given RAW string. Default is "YES". When
-            Unicode/multibyte support is disabled, this option will not have
-            any effects (see "USE_ENCODE" in MIME::Charset).
+        Detect7bit ‡
+            When "Encoding" option (see below) is specified as "a" and
+            "Charset" option is unknown, try to detect 7-bit charset on
+            given RAW string. Default is "YES". When Unicode/multibyte
+            support is disabled, this option will not have any effects (see
+            "USE_ENCODE" in MIME::Charset).
 
         Encoding
-            The encoding to use, "q" or "b". The default is "q". Improvement
-            by this module: You may also specify ``special'' values: "a"
-            will automatically choose recommended encoding to use (with
-            charset conversion if alternative charset is recommended: see
-            MIME::Charset); "s" will choose shorter one of either "q" or
-            "b".
+            The encoding to use, "q" or "b". ‡ You may also specify
+            ``special'' values: "a" will automatically choose recommended
+            encoding to use (with charset conversion if alternative charset
+            is recommended: see MIME::Charset); "s" will choose shorter one
+            of either "q" or "b". NOTE As of release 1.004, The default was
+            changed from "q" (it is also the default on MIME::Words) to "a".
 
         Field
-            Name of the mail field this string will be used in. Improvement
-            by this module: Length of mail field name will be considered in
-            the first line of encoded header.
+            Name of the mail field this string will be used in. ‡ Length of
+            mail field name will be considered in the first line of encoded
+            header.
 
-        Minimal
-            Improvement by this module: Takes care of natural word
-            separators (i.e. whitespaces) in the text to be encoded. If "NO"
-            is specified, this module will encode whole text (if encoding
-            needed) not regarding whitespaces; encoded-words exceeding line
-            length will be splitted based only on their lengths. Default is
-            "YES".
+        Mapping ‡
+            NOT YET IMPLEMENTED
+
+        Minimal ‡
+            Takes care of natural word separators (i.e. whitespaces) in the
+            text to be encoded. If "NO" is specified, this module will
+            encode whole text (if encoding needed) not regarding
+            whitespaces; encoded-words exceeding line length will be
+            splitted based only on their lengths. Default is "YES".
 
             Note: As of release 0.040, default has been changed to "YES" to
             ensure compatibility with MIME::Words. On earlier releases, this
             option was fixed to be "NO".
 
-        Replacement
-            Improvement by this module: See "ERROR HANDLING" in
-            MIME::Charset. Note: This feature was introduced at release
-            1.000.
+        Replacement ‡
+            See "ERROR HANDLING" in MIME::Charset. Note: This feature was
+            introduced at release 1.000.
 
         Notes on improvement by this module: When RAW is an arrayref,
         adjacent encoded-words are concatenated. Then they are splitted
@@ -211,6 +205,13 @@ PUBLIC INTERFACE
         Unicode/multibyte support is enabled. Portions for unencoded data
         should include surrounding whitespace(s), or they will be merged
         into adjoining encoded word(s).
+
+  Configuration Files
+‡
+    Built-in defaults of option parameters for "decode_mimewords" and
+    "encode_mimewords" can be overridden by configuration files:
+    MIME/Charset/Defaults.pm and MIME/EncWords/Defaults.pm. For more details
+    read MIME/EncWords/Defaults.pm.sample.
 
 VERSION
     Consult $VERSION variable.
