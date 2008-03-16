@@ -1,26 +1,34 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 9 }
+BEGIN { plan tests => 14 }
 
 use MIME::Charset qw(header_encode);
 use MIME::EncWords qw(encode_mimewords);
 
 {
-    local($/) = '';
-    open WORDS, "<testin/encode-singlebyte.txt" or die "open: $!";
+  local($/) = '';
+  foreach my $in (qw(encode-singlebyte.txt encode-multibyte.txt)) {
+    open WORDS, "<testin/$in" or die "open: $!";
     while (<WORDS>) {
 	s{\A\s+|\s+\Z}{}g;    # trim
 
-	my ($isgood, $dec, $expect) = split /\n/, $_, 3;
+	my ($isgood, $dec, $expect, @params);
+	my @l = split /\n/, $_;
+	$isgood = shift @l;
+	$dec = shift @l;
+	$expect = join("\n", @l);
 	$isgood = (uc($isgood) eq 'GOOD');
-	$dec = eval $dec;
+	@params = eval $dec;
 
-	my $enc = encode_mimewords($dec, Charset=>"ISO-8859-1", Encoding=>"A");
+	my $enc = encode_mimewords(@params, Encoding=>"A",
+				   MaxLineLen => 76,
+				   Minimal => "YES");
 	ok((($isgood && !$@) or (!$isgood && $@)) and
            ($isgood ? ($enc eq $expect) : 1));
     }
     close WORDS;
+  }
 }    
 
 1;

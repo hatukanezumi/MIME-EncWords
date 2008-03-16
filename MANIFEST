@@ -11,3 +11,4 @@ t/01decode.t
 t/02encode.t
 testin/decode-singlebyte.txt
 testin/encode-singlebyte.txt
+testin/encode-multibyte.txt
