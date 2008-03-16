@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.004';
+$VERSION = '1.005';
 
 ### Public Configuration Attributes
 our $Config = {
@@ -302,6 +302,9 @@ sub decode_mimewords {
                             }xgi) {
 	    ($word, $charset, $encoding, $enc) = ($&, $1, lc($2), $3);
 	    my $tspc = $4;
+	    # unfold
+	    $tspc =~ s/(?:\r?\n|\r)([\t ])/$1/g;
+	    $tspc =~ s/\r?\n|\r/ /g;
 
 	    # RFC 2231 section 5 extension
 	    if ($charset =~ s/^([^\*]*)\*(.*)/$1/) {
@@ -375,7 +378,6 @@ sub decode_mimewords {
 	    unless ($t->[1]) {
 		my $charset = &MIME::Charset::_detect_7bit_charset($t->[0]);
 		if ($charset and $charset ne &MIME::Charset::default()) {
-		    $t->[0] =~ s/[\r\n\t ]+/ /g;
 		    $t->[1] = $charset;
 		}
 	    }
@@ -414,17 +416,14 @@ sub _convert($$$$) {
     $charset->{OutputCharset} = $cset->as_string;
     $charset->{Encoder} = $cset->decoder;
 
-    my $converted;
+    my $converted = $s;
     if (is_utf8($s) or $s =~ $WIDECHAR) {
-	if ($charset->output_charset eq "_UNICODE_") {
-	    $converted = $s;
-	} else {
+	if ($charset->output_charset ne "_UNICODE_") {
 	    $converted = $charset->encode($s);
 	}
     } elsif ($charset->output_charset eq "_UNICODE_") {
 	if (!$charset->decoder) {
 	    if ($s =~ $UNSAFE) {
-		$converted = $s;
 		$@ = '';
 		eval {
 		    $converted = decode("UTF-8", $converted, FB_CROAK());
@@ -439,8 +438,6 @@ sub _convert($$$$) {
 	}
     } elsif ($charset->decoder) {
 	$converted = $charset->encode($s);
-    } else {
-	$converted = $s;
     }
 
     $@ = $preserveerr;
@@ -523,7 +520,7 @@ are concatenated.  Then they are splitted taking
 care of character boundaries of multibyte sequences when Unicode/multibyte
 support is enabled.
 Portions for unencoded data should include surrounding whitespace(s), or
-they will be merged into adjoining encoded word(s).
+they will be merged into adjoining encoded-word(s).
 
 Any arguments past the RAW string are taken to define a hash of options:
 
@@ -553,7 +550,7 @@ recommended encoding to use (with charset conversion if alternative
 charset is recommended: see L<MIME::Charset>);
 C<"s"> will choose shorter one of either C<"q"> or C<"b">.
 B<NOTE>
-As of release 1.004, The default was changed from C<"q">
+As of release 1.005, The default was changed from C<"q">
 (the default on MIME::Words) to C<"a">.
 
 =item Field

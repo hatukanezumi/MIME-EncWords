@@ -1,6 +1,13 @@
 2008-03-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
-	* Release 1.004.
+	* Release 1.005.
+	* Fix: Injected bug on _UNICODE_ conversion.
+	* Fix: decode_mimewords(): line folding of encoded text
+	  is preserved in the result.
+
+2008-03-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.004 - withdrawn.
 	* By this release we require OO interface of MIME::Charset
 	  1.001 or later.
 	* Fix: encode_mimewords(): Newlines were encoded when
