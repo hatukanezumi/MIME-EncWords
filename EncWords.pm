@@ -377,7 +377,7 @@ sub decode_mimewords {
     # Detect 7-bit charset
     if ($detect7bit ne "NO") {
 	foreach my $t (@tokens) {
-	    unless ($t->[1]) {
+	    unless ($t->[0] =~ $UNSAFE or $t->[1]) {
 		my $charset = &MIME::Charset::_detect_7bit_charset($t->[0]);
 		if ($charset and $charset ne &MIME::Charset::default()) {
 		    $t->[1] = $charset;
@@ -621,7 +621,7 @@ See L<MIME::Charset/Error Handling>.
 sub encode_mimewords  {
     my $words = shift;
     my %params = @_;
-    my $charset = uc($params{'Charset'}) || $Config->{Charset};
+    my $charset = uc($params{'Charset'}); # apply default later.
     my $detect7bit = uc($params{'Detect7bit'} || $Config->{Detect7bit});
     my $encoding = uc($params{'Encoding'} || $Config->{Encoding});
     croak "unsupported encoding ``$encoding''"
@@ -692,19 +692,20 @@ sub encode_mimewords  {
 
 	# Determine charset and encoding.
 	if ($encoding eq "A") {
-	    my $obj;
-	    if ($cset) {
-		$obj = $csetobj;
-	    } else {
-		$obj = $charsetobj;
-	    }
+	    my $obj = $cset? $csetobj: $charsetobj;
 	    ($s, $cset, $enc) =
 		$obj->header_encode($s,
 				    Detect7bit => $detect7bit,
 				    Replacement => $replacement);
-	    $csetobj = MIME::Charset->new($cset, Mapping => $mapping);
+	    if ($cset eq "8BIT") {
+		$cset = $Config->{Charset};
+		$csetobj =  MIME::Charset->new($cset, Mapping => $mapping);
+		$enc = $csetobj->header_encoding;
+	    } else {
+		$csetobj = MIME::Charset->new($cset, Mapping => $mapping);
+	    }
 	} elsif ($cset ne "US-ASCII") {
-	    $cset ||= $charset;
+	    $cset ||= $charset || $Config->{Charset};
 	    $csetobj = MIME::Charset->new($cset, Mapping => $mapping);
 	    my $u = $s;
 	    eval {

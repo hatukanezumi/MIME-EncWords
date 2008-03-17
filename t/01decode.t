@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => ($^V ge v5.8.1)? 39: 10 }
+BEGIN { plan tests => ($^V ge v5.8.1)? 42: 10 }
 
 use MIME::EncWords qw(decode_mimewords);
 
@@ -17,24 +17,27 @@ my @testins = MIME::Charset::USE_ENCODE?
 	s{\A\s+|\s+\Z}{}g;    # trim
 
 	my ($isgood, $expect, $enc) = split /\n/, $_, 3;
-	my $charset;
+	my ($charset, $ucharset);
 	$isgood = (uc($isgood) eq 'GOOD');
-	($expect, $charset) = eval $expect;
+	($expect, $charset, $ucharset) = eval $expect;
 
-	my $dec = decode_mimewords($enc, Charset => $charset);
+	my $dec = decode_mimewords($enc, Charset => $charset,
+				   Detect7bit => "YES");
 	ok((($isgood && !$@) or (!$isgood && $@)) and
            ($isgood ? ($dec eq $expect) : 1));
 	if (MIME::Charset::USE_ENCODE) {
 	    my $u;
-	    # Convert to other charset...
+	    # Convert to other charset (or no conversion)...
 	    $u = $expect;
-	    Encode::from_to($u, $charset || "us-ascii", "utf-8");
-	    $dec = decode_mimewords($enc, Charset => "utf-8");
+	    Encode::from_to($u, $charset, "utf-8") if $charset;
+	    $dec = decode_mimewords($enc, Charset => $charset? "utf-8": "",
+				    Detect7bit => "YES");
 	    ok((($isgood && !$@) or (!$isgood && $@)) and
 		($isgood ? ($dec eq $u) : 1));
 	    # Convert to Unicode...
-	    $u = Encode::decode($charset || "us-ascii", $expect);
-	    $dec = decode_mimewords($enc, Charset => "_UNICODE_");
+	    $u = Encode::decode($charset || $ucharset || "us-ascii", $expect);
+	    $dec = decode_mimewords($enc, Charset => "_UNICODE_",
+				    Detect7bit => "YES");
 	    ok((($isgood && !$@) or (!$isgood && $@)) and
 		($isgood ? ($dec eq $u) : 1));
 	}
