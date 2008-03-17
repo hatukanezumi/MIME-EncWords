@@ -112,8 +112,9 @@ PUBLIC INTERFACE
 
         Charset **
             Name of character set by which data elements in scalar context
-            will be converted. If this option is specified as special value
-            "_UNICODE_", returned value will be Unicode string.
+            will be converted. The default is no conversion. If this option
+            is specified as special value "_UNICODE_", returned value will
+            be Unicode string.
 
             Note: This feature is still information-lossy, *except* when
             "_UNICODE_" is specified.
@@ -183,18 +184,29 @@ PUBLIC INTERFACE
             ``special'' values: "a" will automatically choose recommended
             encoding to use (with charset conversion if alternative charset
             is recommended: see MIME::Charset); "s" will choose shorter one
-            of either "q" or "b". NOTE As of release 1.005, The default was
-            changed from "q" (the default on MIME::Words) to "a".
+            of either "q" or "b". Note: * As of release 1.005, The default
+            was changed from "q" (the default on MIME::Words) to "a".
 
         Field
             Name of the mail field this string will be used in. ** Length of
             mail field name will be considered in the first line of encoded
             header.
 
+        Folding **
+            A Sequence to fold encoded lines. The default is "\n". If empty
+            string "" is specified, encoded-words exceeding line length (see
+            "MaxLineLen" above) will be splitted by SPACE.
+
+            Note: * Though RFC 2822 states that the lines are delimited by
+            CRLF ("\r\n"), this module chose LF ("\n") as a default to keep
+            backward compatibility. When you use the default, you might need
+            converting newlines before encoded headers are thrown into
+            session.
+
         Mapping **
             Specify mappings actually used for charset names. "EXTENDED"
             uses extended mappings. "STANDARD" uses standardized strict
-            mappings. Default is "EXTENDED".
+            mappings. The default is "EXTENDED".
 
         MaxLineLen **
             Maximum line length excluding newline. The default is 76.
@@ -215,10 +227,11 @@ PUBLIC INTERFACE
 
   Configuration Files
 **
-    Built-in defaults of option parameters for "decode_mimewords" and
-    "encode_mimewords" can be overridden by configuration files:
-    MIME/Charset/Defaults.pm and MIME/EncWords/Defaults.pm. For more details
-    read MIME/EncWords/Defaults.pm.sample.
+    Built-in defaults of option parameters for "decode_mimewords" (except
+    'Charset' option) and "encode_mimewords" can be overridden by
+    configuration files: MIME/Charset/Defaults.pm and
+    MIME/EncWords/Defaults.pm. For more details read
+    MIME/EncWords/Defaults.pm.sample.
 
 VERSION
     Consult $VERSION variable.

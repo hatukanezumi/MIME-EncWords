@@ -34,6 +34,8 @@ Following settings are specific to this module.
 
 =item Field
 
+=item Folding
+
 =item MaxLineLen
 
 =item Minimal
@@ -59,6 +61,7 @@ L<MIME::EncWords>
 # $Config->{Charset} = 'ISO-8859-1';
 # $Config->{Encoding} = 'A';
 # $Config->{Field} = undef;
+# $Config->{Folding} = "\n";
 # $Config->{MaxLineLen} = 76;
 # $Config->{Minimal} = 'YES';
 

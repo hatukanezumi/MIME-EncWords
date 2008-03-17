@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.005';
+$VERSION = '1.006';
 
 ### Public Configuration Attributes
 our $Config = {
@@ -128,6 +128,7 @@ our $Config = {
     Charset => 'ISO-8859-1',
     Encoding => 'A',
     Field => undef,
+    Folding => "\n",
     MaxLineLen => 76,
     Minimal => 'YES',
 };
@@ -243,6 +244,7 @@ B<**>
 
 Name of character set by which data elements in scalar context
 will be converted.
+The default is no conversion.
 If this option is specified as special value C<"_UNICODE_">,
 returned value will be Unicode string.
 
@@ -277,7 +279,7 @@ Default is C<"EXTENDED">.
 sub decode_mimewords {
     my $encstr = shift;
     my %params = @_;
-    my $cset = $params{"Charset"} || $Config->{Charset};
+    my $cset = $params{"Charset"} || ""; # default is no conversion.
     my $detect7bit = uc($params{'Detect7bit'} || $Config->{Detect7bit});
     my $mapping = uc($params{'Mapping'} || $Config->{Mapping});
     $cset = MIME::Charset->new($cset, Mapping => $mapping);
@@ -404,6 +406,8 @@ sub _convert($$$$) {
     my $mapping = shift;
     return $s unless MIME::Charset::USE_ENCODE;
     return $s unless $cset->as_string;
+    croak "unsupported charset ``".$cset->as_string."''"
+	unless $cset->decoder or $cset->as_string eq "_UNICODE_";
 
     my $preserveerr = $@;
 
@@ -549,7 +553,8 @@ You may also specify ``special'' values: C<"a"> will automatically choose
 recommended encoding to use (with charset conversion if alternative
 charset is recommended: see L<MIME::Charset>);
 C<"s"> will choose shorter one of either C<"q"> or C<"b">.
-B<NOTE>
+B<Note>:
+B<*>
 As of release 1.005, The default was changed from C<"q">
 (the default on MIME::Words) to C<"a">.
 
@@ -560,13 +565,27 @@ B<**>
 Length of mail field name will be considered in the first line of
 encoded header.
 
+=item Folding
+B<**>
+
+A Sequence to fold encoded lines.  The default is C<"\n">.
+If empty string C<""> is specified, encoded-words exceeding line length
+(see L<"MaxLineLen"> above) will be splitted by SPACE.
+
+B<Note>:
+B<*>
+Though RFC 2822 states that the lines are delimited by CRLF (C<"\r\n">), 
+this module chose LF (C<"\n">) as a default to keep backward compatibility.
+When you use the default, you might need converting newlines
+before encoded headers are thrown into session.
+
 =item Mapping
 B<**>
 
 Specify mappings actually used for charset names.
 C<"EXTENDED"> uses extended mappings.
 C<"STANDARD"> uses standardized strict mappings.
-Default is C<"EXTENDED">.
+The default is C<"EXTENDED">.
 
 =item MaxLineLen
 B<**>
@@ -602,20 +621,32 @@ See L<MIME::Charset/Error Handling>.
 sub encode_mimewords  {
     my $words = shift;
     my %params = @_;
-    my $charset = uc($params{'Charset'}); # apply default later.
+    my $charset = uc($params{'Charset'}) || $Config->{Charset};
     my $detect7bit = uc($params{'Detect7bit'} || $Config->{Detect7bit});
     my $encoding = uc($params{'Encoding'} || $Config->{Encoding});
-    croak "MIME::EncWords: Unsupported encoding: $encoding"
+    croak "unsupported encoding ``$encoding''"
 	unless $encoding =~ /^[ABQS]$/i;
     my $field = $params{'Field'} || $Config->{Field} || "";
     my $mapping = uc($params{'Mapping'} || $Config->{Mapping});
     my $maxlinelen = $params{'MaxLineLen'};
     $maxlinelen = $Config->{MaxLineLen} unless defined $maxlinelen;
     my $minimal = uc($params{'Minimal'} || $Config->{Minimal});
+    my $folding = $params{'Folding'};
+    $folding = $Config->{Folding} unless defined $folding;
     my $replacement = uc($params{'Replacement'} || $Config->{Replacement});
 
     my $charsetobj = MIME::Charset->new($charset, Mapping => $mapping);
     my $firstlinelen = $maxlinelen - ($field? length("$field: "): 0);
+    my ($lwsbrk, $lwsspc);		# Newline and following whitespace.
+    if ($folding =~ m/^([\r\n]*)([\t ]*)$/) {
+	$lwsbrk = $1;
+	$lwsspc = $2 || " ";
+    } else {
+	my $f = $folding;
+	$f =~ s/[^\x20-\x7E]/sprintf('\\x%02X', ord($&))/eg;
+	croak "illegal folding sequence ``$f''";
+    }
+    my $maxrestlen = $maxlinelen - length($lwsspc);
 
     unless (ref($words) eq "ARRAY") {
 	# unfold
@@ -646,7 +677,7 @@ sub encode_mimewords  {
 		if ($s !~ $UNSAFE) {
 		    $cset = "US-ASCII";
 		} elsif ($replacement =~ /^(CROAK|STRICT)$/) {
-		    croak "MIME::EncWords: unsupported charset: $cset\n";
+		    croak "unsupported charset ``$cset''";
 		} else {
 		    $cset = "UTF-8";
 		}
@@ -673,17 +704,17 @@ sub encode_mimewords  {
 				    Replacement => $replacement);
 	    $csetobj = MIME::Charset->new($cset, Mapping => $mapping);
 	} elsif ($cset ne "US-ASCII") {
-	    $cset ||= uc($charset || $Config->{Charset});
+	    $cset ||= $charset;
 	    $csetobj = MIME::Charset->new($cset, Mapping => $mapping);
 	    my $u = $s;
 	    eval {
-		$u = $cset->decode($u, 0);
+		$u = $csetobj->decode($u, 0);
 	    };
 	    if ($@ or $u =~ $UNSAFE) {
 		$enc = $encoding;
 	    } else {
 		($cset, $enc) = ("US-ASCII", undef);
-		$csetobj = MIME::Charset->new($cset, Mapping => $mapping);
+		$csetobj = MIME::Charset->new($cset, Mapping => "STANDARD");
 	    }
 	}
 
@@ -736,10 +767,10 @@ sub encode_mimewords  {
 
 	my $restlen = $restlen - $lastlen - 1;
 	if ($restlen < ($enc? $csetobj->encoded_header_len('', $enc): 1)) {
-	    $restlen = $maxlinelen - 1;
+	    $restlen = $maxrestlen;
 	}
 
-	push @splitted, &_split($s, $enc, $csetobj, $restlen, $maxlinelen);
+	push @splitted, &_split($s, $enc, $csetobj, $restlen, $maxrestlen);
 	my ($last, $lastenc, $lastcsetobj) = @{$splitted[-1]};
 	if ($lastenc) {
 	    $lastlen = $lastcsetobj->encoded_header_len($last, $lastenc);
@@ -771,16 +802,16 @@ sub encode_mimewords  {
 	} else {
 	    $s =~ s/^[\r\n\t ]+//;
 	    push @lines, $s;
-	    $linelen = $maxlinelen - 1;
+	    $linelen = $maxrestlen;
 	}
     }
 
-    join("\n ", @lines);
+    join($lwsbrk.$lwsspc, @lines);
 }
 
 #------------------------------
 
-# _split RAW, ENCODING, CHARSET_OBJECT, ROOM_OF_FIRST_LINE, MAXLINELEN
+# _split RAW, ENCODING, CHARSET_OBJECT, ROOM_OF_FIRST_LINE, MAXRESTLEN
 #     Private: used by encode_mimewords() to split a string into
 #     (encoded or non-encoded) words.
 #     Returns an array of arrayrefs [SUBSTRING, ENCODING, CHARSET].
@@ -789,17 +820,17 @@ sub _split {
     my $encoding = shift;
     my $charset = shift;
     my $restlen = shift;
-    my $maxlinelen = shift;
+    my $maxrestlen = shift;
 
     if (!$charset->as_string or $charset->as_string eq '8BIT') {# Undecodable.
 	$str =~ s/[\r\n]+[\t ]*|\x00/ /g;	# Eliminate hostile characters.
 	return ([$str, undef, $charset]);
     }
-    unless ($charset->decoder) {		# Unsupported charset.
-	return ([$str, $encoding, $charset]);
+    if (!$encoding and $charset->as_string eq 'US-ASCII') { # Pure ASCII.
+	return &_split_ascii($str, $restlen, $maxrestlen);
     }
-    if (!$encoding and $charset->as_string eq 'US-ASCII') {
-	return &_split_ascii($str, $restlen, $maxlinelen);
+    if (!$charset->decoder) {				# Unsupported charset.
+	return ([$str, $encoding, $charset]);
     }
 
     my (@splitted, $ustr, $first);
@@ -813,12 +844,12 @@ sub _split {
 	($first, $str) = &_clip_unsafe($ustr, $encoding, $charset,
 				       $restlen);
 	push @splitted, [$first, $encoding, $charset];
-	$restlen = $maxlinelen - 1;
+	$restlen = $maxrestlen;
     }
     return @splitted;
 }
 
-# _split_ascii RAW, ROOM_OF_FIRST_LINE, MAXLINELEN
+# _split_ascii RAW, ROOM_OF_FIRST_LINE, MAXRESTLEN
 #     Private: used by encode_mimewords() to split an US-ASCII string into
 #     (encoded or non-encoded) words.
 #     Returns an array of arrayrefs [SUBSTRING, ENCODING, "US-ASCII"],
@@ -827,8 +858,8 @@ sub _split {
 sub _split_ascii {
     my $s = shift;
     my $restlen = shift;
-    my $maxlinelen = shift;
-    $restlen ||= $maxlinelen - 1;
+    my $maxrestlen = shift;
+    $restlen ||= $maxrestlen;
 
     my @splitted;
     my $obj = MIME::Charset->new("US-ASCII", Mapping => 'STANDARD');
@@ -837,7 +868,7 @@ sub _split_ascii {
 
 	if (length($line) < $restlen and $line !~ /=\?|$UNSAFE/) {
 	    push @splitted, [$line, undef, $obj];
-	    $restlen = $maxlinelen - 1;
+	    $restlen = $maxrestlen;
 	    next;
 	}
 
@@ -878,7 +909,7 @@ sub _split_ascii {
 		    $restlen -= $elen;
 		    next;
 		}
-		$restlen = $maxlinelen - 1;
+		$restlen = $maxrestlen;
 	    }
 	    push @splitted, [$word, $enc, $obj];
 	    $restlen -= ($enc?
@@ -945,7 +976,8 @@ sub _clip_unsafe {
 =head2 Configuration Files
 B<**>
 
-Built-in defaults of option parameters for L<"decode_mimewords"> and
+Built-in defaults of option parameters for L<"decode_mimewords">
+(except 'Charset' option) and
 L<"encode_mimewords"> can be overridden by configuration files:
 F<MIME/Charset/Defaults.pm> and F<MIME/EncWords/Defaults.pm>.
 For more details read F<MIME/EncWords/Defaults.pm.sample>.

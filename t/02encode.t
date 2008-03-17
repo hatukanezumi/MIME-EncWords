@@ -1,15 +1,19 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 14 }
+BEGIN { plan tests => ($^V ge v5.8.1)? 14: 9 }
 
 use MIME::Charset qw(header_encode);
 use MIME::EncWords qw(encode_mimewords);
 
+my @testins = MIME::Charset::USE_ENCODE?
+	      qw(encode-singlebyte encode-multibyte):
+	      qw(encode-singlebyte);
+
 {
   local($/) = '';
-  foreach my $in (qw(encode-singlebyte.txt encode-multibyte.txt)) {
-    open WORDS, "<testin/$in" or die "open: $!";
+  foreach my $in (@testins) {
+    open WORDS, "<testin/$in.txt" or die "open: $!";
     while (<WORDS>) {
 	s{\A\s+|\s+\Z}{}g;    # trim
 
