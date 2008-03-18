@@ -28,7 +28,7 @@ GOOD
 
 GOOD
 ([["Andr\xE9"],["  (<- two spaces) Pirard"],[" "],["<PIRARD\@vm1.ulg.ac.be>"]], Charset => "iso-8859-1")
-=?ISO-8859-1?Q?Andr=E9?= (<- two spaces) Pirard <PIRARD@vm1.ulg.ac.be>
+=?ISO-8859-1?Q?Andr=E9?=  (<- two spaces) Pirard <PIRARD@vm1.ulg.ac.be>
 
 GOOD
 ("_-_")

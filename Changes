@@ -3,12 +3,15 @@
 	* Release 1.00X.
 	* encode_mimewords(): New option 'Folding' defaults to
 	  be "\n" which may break conformance to RFC 2822 / MIME.
+	* Improve handling of folding-white-spaces: preserve
+	  multiple whitespace sequences. 
 	* Fix: decode_mimewords(): excessive spaces are inserted
 	  on pre-Encode environments (e.g. 5.6.x).
 	* Fix: decode_mimewords(): no 'Charset' option must be
 	  no conversion to keep compatible with MIME::Words.
 	* Remove multibyte tests on pre-Encode environments
 	  where it cannot be supported exactly.
+	* Restructure processing of option parameters.
 	* Added tests for decoding multibyte.
 
 2008-03-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
