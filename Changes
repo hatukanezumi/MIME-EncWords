@@ -3,7 +3,7 @@
 	* Release 1.00X.
 	* encode_mimewords(): New option 'Folding' defaults to
 	  be "\n" which may break conformance to RFC 2822 / MIME.
-	* Improve handling of folding-white-spaces: preserve
+	* Improve handling of linear-white-spaces: preserve
 	  multiple whitespace sequences. 
 	* Fix: decode_mimewords(): excessive spaces are inserted
 	  on pre-Encode environments (e.g. 5.6.x).

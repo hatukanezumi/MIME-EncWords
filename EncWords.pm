@@ -287,8 +287,8 @@ sub decode_mimewords {
 			    );
     my $cset = MIME::Charset->new($Params{Charset},
 				  Mapping => $Params{Mapping});
-    # unfold: normalize FWS, obs-FWS and orphan newline.
-    $encstr =~ s/(?:[\t ]*[\r\n]+)+([\t ]|\Z)/$1/g;
+    # unfold: normalize linear-white-spaces and orphan newlines.
+    $encstr =~ s/(?:[\r\n]+[\t ])*[\r\n]+([\t ]|\Z)/$1? " ": ""/eg;
     $encstr =~ s/[\r\n]+/ /g;
 
     my @tokens;
@@ -642,9 +642,8 @@ sub encode_mimewords  {
 	$fwsbrk = $1;
 	$fwsspc = $2 || " ";
     } else {
-	my $f = $Params{Folding};
-	$f =~ s/[^\x20-\x7E]/sprintf('\\x%02X', ord($&))/eg;
-	croak "illegal folding sequence ``$f''";
+	croak sprintf "illegal folding sequence ``\\x%*v02X''", '\\x',
+		      $Params{Folding};
     }
     # calculate some variables
     my $charsetobj = MIME::Charset->new($Params{Charset},
@@ -654,14 +653,8 @@ sub encode_mimewords  {
     my $maxrestlen = $Params{MaxLineLen} - length($fwsspc);
 
     unless (ref($words) eq "ARRAY") {
-	# 16/32 bit UTF will be handled as Unicode string
-	if ($charsetobj->decoder and
-	    $charsetobj->as_string =~ /^UTF.?(16|32)([BL]E)?$/i and
-	    !is_utf8($words) and $words !~ /$WIDECHAR/) {
-	    $words = $charsetobj->decode($words, FB_CROAK());
-	}
-	# unfold: normalize FWS, obs-FWS and orphan newline.
-	$words =~ s/(?:[\t ]*[\r\n]+)+([\t ]|\Z)/$1/g;
+	# unfold: normalize linear-white-spaces and orphan newlines.
+	$words =~ s/(?:[\r\n]+[\t ])*[\r\n]+([\t ]|\Z)/$1? " ": ""/eg;
 	$words =~ s/[\r\n]+/ /g;
 	# split if required
 	if ($Params{Minimal} eq "YES") {
@@ -774,6 +767,11 @@ sub encode_mimewords  {
 	push @triplets, [$s, $enc, $csetobj];
     }
 
+    # chop leading FWS
+    while ($triplets[0]->[0] =~ s/^[\r\n\t ]+//) {
+	shift @triplets unless $triplets[0]->[0];
+    }
+
     # Split long ``words''.
     my @splitted;
     my $restlen = $firstlinelen;
@@ -812,9 +810,8 @@ sub encode_mimewords  {
 	my $spc = (scalar(@lines) and $lines[-1] =~ /[\t ]$/ or
 		   $s =~ /^[\t ]/)? '': ' ';
 	if (!scalar(@lines)) {
-	    $s =~ s/^[\r\n\t ]+//;
 	    push @lines, $s;
-	} elsif (length($lines[-1]) + length($spc) + length($s) <= $linelen) {
+	} elsif (length($lines[-1].$spc.$s) <= $linelen) {
 	    $lines[-1] .= $spc.$s;
 	} else {
 	    if ($lines[-1] =~ s/([\r\n\t ]+)$//) {
@@ -882,22 +879,23 @@ sub _split_ascii {
     $restlen ||= $maxrestlen;
 
     my @splitted;
-    my $obj = MIME::Charset->new("US-ASCII", Mapping => 'STANDARD');
+    my $ascii = MIME::Charset->new("US-ASCII", Mapping => 'STANDARD');
     foreach my $line (split(/(?:[\t ]*[\r\n]+)+/, $s)) {
-	if (length($line) < $restlen and $line !~ /=\?|$UNSAFE/) {
-	    push @splitted, [$line, undef, $obj];
+	if (length($line) <= $restlen and $line !~ /=\?|$UNSAFE/) {
+	    push @splitted, [$line, undef, $ascii];
 	    $restlen = $maxrestlen;
 	    next;
 	}
 
-        my ($spc, $enc);
+        my $spc;
 	foreach my $word (split(/([\t ]+)/, $line)) {
+	    next unless scalar(@splitted) or $word; # skip first garbage
 	    if ($word =~ /[\t ]/) {
 		$spc = $word;
 		next;
 	    }
 
-	    $enc = ($word =~ /=\?|$UNSAFE/)? "Q": undef;
+	    my $enc = ($word =~ /=\?|$UNSAFE/)? "Q": undef;
 	    if (scalar(@splitted)) {
 		my ($last, $lastenc, $lastcsetobj) = @{$splitted[-1]};
 		my ($elen, $cont, $appe);
@@ -909,28 +907,33 @@ sub _split_ascii {
 		    ($cont, $appe) = ($spc.$word, "");
 		} elsif (!$lastenc and $enc) {
 		    $elen = length($spc) +
-			$obj->encoded_header_len($word, "Q");
+			$ascii->encoded_header_len($word, "Q");
 		    ($cont, $appe) = ($spc, $word);
 		} elsif ($lastenc and !$enc) {
 		    $elen = length($spc.$word);
 		    ($cont, $appe) = ("", $spc.$word);
 		} else {
-		    $elen = $obj->encoded_header_len($spc.$word, "Q") - 15;
+		    $elen = $ascii->encoded_header_len($spc.$word, "Q") - 15;
 		    ($cont, $appe) = ($spc.$word, "");
 		}
-
-		if ($elen < $restlen) {
-		    $splitted[-1]->[0] .= $cont if length($cont);
-		    push @splitted, [$appe, $enc, $obj] if length($appe);
+		if ($elen <= $restlen) {
+		    $splitted[-1]->[0] .= $cont if $cont;
+		    push @splitted, [$appe, $enc, $ascii] if $appe;
 		    $restlen -= $elen;
-		    next;
+		} else {
+		    push @splitted, [$cont, $lastenc, $ascii] if $cont;
+		    push @splitted, [$appe, $enc, $ascii] if $appe;
+		    $restlen = $maxrestlen - $elen;
+		    $restlen -= 15 if $lastenc and $enc;
 		}
-		$restlen = $maxrestlen;
+	    } else {
+		push @splitted, [$spc.$word, $enc, $ascii];
+		if ($enc) {
+		    $restlen -= $ascii->encoded_header_len($spc.$word, "Q");
+		} else {
+		    $restlen -= length($spc.$word);
+		}
 	    }
-	    push @splitted, [$word, $enc, $obj];
-	    $restlen -= ($enc?
-			 $obj->encoded_header_len($word, "Q"):
-			 length($word));
 	}
     }
     return @splitted;
@@ -987,6 +990,8 @@ sub _clip_unsafe {
 
 #------------------------------
 
+# _getparams HASHREF, OPTS
+#     Private: used to get option parameters.
 sub _getparams {
     my $params = shift;
     my %params = @_;
