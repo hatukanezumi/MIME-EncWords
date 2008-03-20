@@ -98,7 +98,7 @@ Exporter::export_ok_tags(qw(all));
 @ISA = qw(Exporter);
 
 ### Other modules:
-use Carp qw(croak);
+use Carp qw(croak carp);
 use MIME::Base64;
 use MIME::Charset qw(:trans);
 
@@ -283,6 +283,7 @@ sub decode_mimewords {
 			     NoDefault => [qw(Charset)], # default is no conv.
 			     YesNo => [qw(Detect7bit)],
 			     Others => [qw(Mapping)],
+			     Obsoleted => [qw(Field)],
 			     ToUpper => [qw(Charset Mapping)],
 			    );
     my $cset = MIME::Charset->new($Params{Charset},
@@ -575,7 +576,7 @@ B<**>
 
 A Sequence to fold encoded lines.  The default is C<"\n">.
 If empty string C<""> is specified, encoded-words exceeding line length
-(see L<"MaxLineLen"> above) will be splitted by SPACE.
+(see L<"MaxLineLen"> below) will be splitted by SPACE.
 
 B<Note>:
 B<*>
@@ -591,6 +592,9 @@ Specify mappings actually used for charset names.
 C<"EXTENDED"> uses extended mappings.
 C<"STANDARD"> uses standardized strict mappings.
 The default is C<"EXTENDED">.
+When Unicode/multibyte support is disabled,
+this option will not have any effects
+(see L<MIME::Charset/USE_ENCODE>).
 
 =item MaxLineLen
 B<**>
@@ -775,21 +779,20 @@ sub encode_mimewords  {
     # Split long ``words''.
     my @splitted;
     my $restlen = $firstlinelen;
-    my $lastlen = 0;
     foreach (@triplets) {
 	my ($s, $enc, $csetobj) = @$_;
 
-	my $restlen = $restlen - $lastlen - 1;
-	if ($restlen < ($enc? $csetobj->encoded_header_len('', $enc): 1)) {
+	if ($enc and $restlen < $csetobj->encoded_header_len("\a", $enc) or
+	    !$enc and $restlen < length($s) - ($s =~ /^[\t ]/? 1: 0)) {
 	    $restlen = $maxrestlen;
 	}
 
 	push @splitted, &_split($s, $enc, $csetobj, $restlen, $maxrestlen);
 	my ($last, $lastenc, $lastcsetobj) = @{$splitted[-1]};
 	if ($lastenc) {
-	    $lastlen = $lastcsetobj->encoded_header_len($last, $lastenc);
+	    $restlen -= $lastcsetobj->encoded_header_len($last, $lastenc);
 	} else {
-	    $lastlen = length($last);
+	    $restlen -= length($last); # FIXME: Sometimes estimated longer
 	}
     }
 
@@ -887,7 +890,7 @@ sub _split_ascii {
 	    next;
 	}
 
-        my $spc;
+        my $spc = '';
 	foreach my $word (split(/([\t ]+)/, $line)) {
 	    next unless scalar(@splitted) or $word; # skip first garbage
 	    if ($word =~ /[\t ]/) {
@@ -933,6 +936,16 @@ sub _split_ascii {
 		} else {
 		    $restlen -= length($spc.$word);
 		}
+	    }
+	    $spc = '';
+	}
+	if ($spc) {
+	    if (scalar(@splitted)) {
+		$splitted[-1]->[0] .= $spc;
+		$restlen -= length($spc);
+	    } else { # NOTREACHED
+		push @splitted, [$spc, undef, $ascii];
+		$restlen = $maxrestlen - length($spc);
 	    }
 	}
     }
@@ -997,17 +1010,20 @@ sub _getparams {
     my %params = @_;
     my %Params;
     my %GotParams;
-    foreach my $k (qw(NoDefault YesNo Others ToUpper)) {
+    foreach my $k (qw(NoDefault YesNo Others Obsoleted ToUpper)) {
 	$Params{$k} = $params{$k} || [];
     }
     foreach my $k (keys %$params) {
+	my $supported = 0;
 	foreach my $i (@{$Params{NoDefault}}, @{$Params{YesNo}},
-		       @{$Params{Others}}) {
+		       @{$Params{Others}}, @{$Params{Obsoleted}}) {
 	    if (lc $i eq lc $k) {
 		$GotParams{$i} = $params->{$k};
+		$supported = 1;
 		last;
 	    }
 	}
+	carp "unknown or deprecated option ``$k''" unless $supported;
     }
     # get defaults
     foreach my $i (@{$Params{YesNo}}, @{$Params{Others}}) {

@@ -195,7 +195,7 @@ PUBLIC INTERFACE
         Folding **
             A Sequence to fold encoded lines. The default is "\n". If empty
             string "" is specified, encoded-words exceeding line length (see
-            "MaxLineLen" above) will be splitted by SPACE.
+            "MaxLineLen" below) will be splitted by SPACE.
 
             Note: * Though RFC 2822 states that the lines are delimited by
             CRLF ("\r\n"), this module chose LF ("\n") as a default to keep
@@ -206,7 +206,9 @@ PUBLIC INTERFACE
         Mapping **
             Specify mappings actually used for charset names. "EXTENDED"
             uses extended mappings. "STANDARD" uses standardized strict
-            mappings. The default is "EXTENDED".
+            mappings. The default is "EXTENDED". When Unicode/multibyte
+            support is disabled, this option will not have any effects (see
+            "USE_ENCODE" in MIME::Charset).
 
         MaxLineLen **
             Maximum line length excluding newline. The default is 76.

@@ -31,6 +31,10 @@ GOOD
 =?ISO-8859-1?Q?Andr=E9?=  (<- two spaces) Pirard <PIRARD@vm1.ulg.ac.be>
 
 GOOD
+("Network Copier Oc\xE9 3165 down for maintenance", Charset => "iso-8859-1")
+Network Copier =?ISO-8859-1?Q?Oc=E9?= 3165 down for maintenance
+
+GOOD
 ("_-_")
 _-_
 

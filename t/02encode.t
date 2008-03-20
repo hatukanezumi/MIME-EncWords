@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => ($^V ge v5.8.1)? 14: 9 }
+BEGIN { plan tests => ($^V ge v5.8.1)? 15: 10 }
 
 use MIME::Charset qw(header_encode);
 use MIME::EncWords qw(encode_mimewords);
