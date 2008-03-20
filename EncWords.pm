@@ -64,7 +64,7 @@ Latin characters with 7 bit sequences /o and 'e):
 
 B<Supplement>: Fellow Americans, Europeans, you probably won't know
 what the hell this module is for.  East Asians, et al, you probably do.
-C<:-)>.
+C<(^_^)>.
 
 For example, here's a valid MIME header you might get:
 
@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.006';
+$VERSION = '1.007';
 
 ### Public Configuration Attributes
 our $Config = {
@@ -481,6 +481,7 @@ sub encode_mimeword {
     my $word = shift;
     my $encoding = uc(shift || 'Q');          # not overridden.
     my $charset  = uc(shift || 'ISO-8859-1'); # ditto.
+    my $language = uc(shift || "");	      # ditto.
 
     my $encstr;
     if ($encoding eq 'Q') {
@@ -499,7 +500,11 @@ sub encode_mimeword {
 	$encstr = &_encode_B($word);
     }
 
-    "=?$charset?$encoding?$encstr?=";
+    if ($language) {
+	return "=?$charset*$language?$encoding?$encstr?=";
+    } else {
+	return "=?$charset?$encoding?$encstr?=";
+    }
 }
 
 #------------------------------
