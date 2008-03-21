@@ -35,6 +35,17 @@ GOOD
 Network Copier =?ISO-8859-1?Q?Oc=E9?= 3165 down for maintenance
 
 GOOD
+("La r\xE9alisation du Syst\xE8me de R\xE9f\xE9rence C\xE9leste", Charset => "iso-8859-1")
+La =?ISO-8859-1?Q?r=E9alisation?= du =?ISO-8859-1?Q?Syst=E8me?= de
+ =?ISO-8859-1?Q?R=E9f=E9rence_C=E9leste?=
+
+GOOD
+("Th\xE8me tr\xE8s important\xA0: La r\xE9alisation du Syst\xE8me de R\xE9f\xE9rence C\xE9leste", Charset => "iso-8859-1")
+=?ISO-8859-1?Q?Th=E8me_tr=E8s_important=A0:?= La =?ISO-8859-1?Q?r=E9alisat?=
+ =?ISO-8859-1?Q?ion?= du =?ISO-8859-1?Q?Syst=E8me?= de
+ =?ISO-8859-1?Q?R=E9f=E9rence_C=E9leste?=
+
+GOOD
 ("_-_")
 _-_
 

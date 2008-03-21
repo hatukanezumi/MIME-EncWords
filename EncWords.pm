@@ -102,7 +102,7 @@ use Carp qw(croak carp);
 use MIME::Base64;
 use MIME::Charset qw(:trans);
 
-my @ENCODE_SUBS = qw(FB_CROAK decode encode is_utf8 resolve_alias);
+my @ENCODE_SUBS = qw(FB_CROAK is_utf8 resolve_alias);
 if (MIME::Charset::USE_ENCODE) {
     eval "use ".MIME::Charset::USE_ENCODE." \@ENCODE_SUBS;";
 } else {
@@ -288,7 +288,7 @@ sub decode_mimewords {
 			    );
     my $cset = MIME::Charset->new($Params{Charset},
 				  Mapping => $Params{Mapping});
-    # unfold: normalize linear-white-spaces and orphan newlines.
+    # unfolding: normalize linear-white-spaces and orphan newlines.
     $encstr =~ s/(?:[\r\n]+[\t ])*[\r\n]+([\t ]|\Z)/$1? " ": ""/eg;
     $encstr =~ s/[\r\n]+/ /g;
 
@@ -436,11 +436,15 @@ sub _convert($$$$) {
 	    if ($s =~ $UNSAFE) {
 		$@ = '';
 		eval {
-		    $converted = decode("UTF-8", $converted, FB_CROAK());
+		    $charset = MIME::Charset->new("UTF-8",
+						  Mapping => 'STANDARD');
+		    $converted = $charset->decode($converted, FB_CROAK());
 		};
 		if ($@) {
 		    $converted = $s;
-		    $converted = decode("ISO-8859-1", $converted);
+		    $charset = MIME::Charset->new("ISO-8859-1",
+						  Mapping => 'STANDARD');
+		    $converted = $charset->decode($converted, 0);
 		}
 	    }
 	} else {
@@ -662,7 +666,7 @@ sub encode_mimewords  {
     my $maxrestlen = $Params{MaxLineLen} - length($fwsspc);
 
     unless (ref($words) eq "ARRAY") {
-	# unfold: normalize linear-white-spaces and orphan newlines.
+	# unfolding: normalize linear-white-spaces and orphan newlines.
 	$words =~ s/(?:[\r\n]+[\t ])*[\r\n]+([\t ]|\Z)/$1? " ": ""/eg;
 	$words =~ s/[\r\n]+/ /g;
 	# split if required
@@ -736,9 +740,7 @@ sub encode_mimewords  {
 	    }
 	}
 
-	# Now no charset transformations are needed, although specified
-	# charset name might be reserved.
-	$csetobj->{InputCharset} = $cset;
+	# Now no charset transformations are needed.
 	$csetobj->{Encoder} = $csetobj->decoder;
 	$csetobj->{OutputCharset} = $csetobj->as_string;
 
@@ -748,16 +750,16 @@ sub encode_mimewords  {
 	# separating whitespace(s).
 	if (scalar(@triplets)) {
 	    my ($last, $lastenc, $lastcsetobj) = @{$triplets[-1]};
-	    if (uc($lastcsetobj->as_string) eq uc($csetobj->as_string) and
-		uc($lastenc) eq uc($enc) and
-		$csetobj->decoder) {
+	    if ($csetobj->decoder and
+		($lastcsetobj->as_string || "") eq $csetobj->as_string and
+		($lastenc || "") eq ($enc || "")) {
 		$triplets[-1]->[0] .= $s;
 		next;
 	    } elsif (!$lastenc and $enc and $last !~ /[\t ]$/) {
 		if ($last =~ /^(.*)([\t ])([$PRINTABLE]+)$/s) {
 		    $triplets[-1]->[0] = $1.$2;
 		    $s = $3.$s;
-		} elsif (uc($lastcsetobj->as_string) eq "US-ASCII") {
+		} elsif ($lastcsetobj->as_string eq "US-ASCII") {
 		    $triplets[-1]->[0] .= $s;
 		    $triplets[-1]->[1] = $enc;
 		    $triplets[-1]->[2] = $csetobj;
@@ -767,7 +769,7 @@ sub encode_mimewords  {
 		if ($s =~ /^([$PRINTABLE]+)([\t ])(.*)$/s) {
 		    $triplets[-1]->[0] .= $1;
 		    $s = $2.$3;
-		} elsif (uc($csetobj->as_string) eq "US-ASCII") {
+		} elsif ($csetobj->as_string eq "US-ASCII") {
 		    $triplets[-1]->[0] .= $s;
 		    next;
 		}
@@ -854,7 +856,7 @@ sub _split {
     if (!$encoding and $charset->as_string eq 'US-ASCII') { # Pure ASCII.
 	return &_split_ascii($str, $restlen, $maxrestlen);
     }
-    if (!$charset->decoder) {				# Unsupported charset.
+    if (!$charset->decoder and MIME::Charset::USE_ENCODE) { # Unsupported.
 	return ([$str, $encoding, $charset]);
     }
 
@@ -865,9 +867,10 @@ sub _split {
 	    last;
 	}
 	$ustr = $str;
-	$ustr = $charset->decode($ustr);
-	($first, $str) = &_clip_unsafe($ustr, $encoding, $charset,
-				       $restlen);
+	if (MIME::Charset::USE_ENCODE) {
+	    $ustr = $charset->decode($ustr);
+	}
+	($first, $str) = &_clip_unsafe($ustr, $encoding, $charset, $restlen);
 	push @splitted, [$first, $encoding, $charset];
 	$restlen = $maxrestlen;
     }
@@ -960,6 +963,8 @@ sub _split_ascii {
 # _clip_unsafe UNICODE, ENCODING, CHARSET_OBJECT, ROOM_OF_FIRST_LINE
 #     Private: used by encode_mimewords() to bite off one encodable
 #     ``word'' from a Unicode string.
+#     Note: When Unicode/multibyte support is not enabled, character
+#     boundaries of multibyte string shall be broken!
 sub _clip_unsafe {
     my $ustr = shift;
     my $encoding = shift;
@@ -971,7 +976,10 @@ sub _clip_unsafe {
     my ($shorter, $longer) = (0, length($ustr));
     while ($shorter < $longer) {
 	my $cur = int(($shorter + $longer + 1) / 2);
-	my $enc = $charset->encode(substr($ustr, 0, $cur));
+	my $enc = substr($ustr, 0, $cur);
+	if (MIME::Charset::USE_ENCODE) {
+	    $enc = $charset->decoder->encode($enc);
+	}
 	my $elen = $charset->encoded_header_len($enc, $encoding);
 	if ($elen <= $restlen) {
 	    $shorter = $cur;
@@ -988,14 +996,16 @@ sub _clip_unsafe {
 	eval {
 	    ($fenc, $renc) =
 		(substr($ustr, 0, $shorter), substr($ustr, $shorter));
-	    $fenc = $charset->encode($fenc, FB_CROAK());
-	    $renc = $charset->encode($renc, FB_CROAK());
+	    if (MIME::Charset::USE_ENCODE) {
+		$fenc = $charset->decoder->encode($fenc, FB_CROAK());
+		$renc = $charset->decoder->encode($renc, FB_CROAK());
+	    }
 	};
 	last unless ($@);
 
 	$shorter++;
-	unless ($shorter < $max) { # Unencodable characters are included.
-	    return ($charset->encode($ustr), "");
+	unless ($shorter < $max) { # Unencodable character(s) may be included.
+	    return ($charset->decoder->encode($ustr), "");
 	}
     }
 

@@ -4,6 +4,17 @@ use Test;
 BEGIN { plan tests => ($^V ge v5.8.1)? 42: 10 }
 
 use MIME::EncWords qw(decode_mimewords);
+$MIME::EncWords::Config = {
+    Detect7bit => 'YES',
+    Mapping => 'EXTENDED',
+    Replacement => 'DEFAULT',
+    Charset => 'ISO-8859-1',
+    Encoding => 'A',
+    Field => undef,
+    Folding => "\n",
+    MaxLineLen => 76,
+    Minimal => 'YES',
+};
 
 my @testins = MIME::Charset::USE_ENCODE?
 	      qw(decode-singlebyte decode-multibyte):
@@ -21,8 +32,7 @@ my @testins = MIME::Charset::USE_ENCODE?
 	$isgood = (uc($isgood) eq 'GOOD');
 	($expect, $charset, $ucharset) = eval $expect;
 
-	my $dec = decode_mimewords($enc, Charset => $charset,
-				   Detect7bit => "YES");
+	my $dec = decode_mimewords($enc, Charset => $charset);
 	ok((($isgood && !$@) or (!$isgood && $@)) and
            ($isgood ? ($dec eq $expect) : 1));
 	if (MIME::Charset::USE_ENCODE) {
@@ -30,14 +40,12 @@ my @testins = MIME::Charset::USE_ENCODE?
 	    # Convert to other charset (or no conversion)...
 	    $u = $expect;
 	    Encode::from_to($u, $charset, "utf-8") if $charset;
-	    $dec = decode_mimewords($enc, Charset => $charset? "utf-8": "",
-				    Detect7bit => "YES");
+	    $dec = decode_mimewords($enc, Charset => $charset? "utf-8": "");
 	    ok((($isgood && !$@) or (!$isgood && $@)) and
 		($isgood ? ($dec eq $u) : 1));
 	    # Convert to Unicode...
 	    $u = Encode::decode($charset || $ucharset || "us-ascii", $expect);
-	    $dec = decode_mimewords($enc, Charset => "_UNICODE_",
-				    Detect7bit => "YES");
+	    $dec = decode_mimewords($enc, Charset => "_UNICODE_");
 	    ok((($isgood && !$@) or (!$isgood && $@)) and
 		($isgood ? ($dec eq $u) : 1));
 	}
