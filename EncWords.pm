@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.007';
+$VERSION = '1.007.1';
 
 ### Public Configuration Attributes
 our $Config = {
@@ -867,7 +867,7 @@ sub _split {
 	    last;
 	}
 	$ustr = $str;
-	if (MIME::Charset::USE_ENCODE) {
+	if (MIME::Charset::USE_ENCODE()) {
 	    $ustr = $charset->decode($ustr);
 	}
 	($first, $str) = &_clip_unsafe($ustr, $encoding, $charset, $restlen);
@@ -977,7 +977,7 @@ sub _clip_unsafe {
     while ($shorter < $longer) {
 	my $cur = int(($shorter + $longer + 1) / 2);
 	my $enc = substr($ustr, 0, $cur);
-	if (MIME::Charset::USE_ENCODE) {
+	if (MIME::Charset::USE_ENCODE()) {
 	    $enc = $charset->decoder->encode($enc);
 	}
 	my $elen = $charset->encoded_header_len($enc, $encoding);
@@ -996,7 +996,7 @@ sub _clip_unsafe {
 	eval {
 	    ($fenc, $renc) =
 		(substr($ustr, 0, $shorter), substr($ustr, $shorter));
-	    if (MIME::Charset::USE_ENCODE) {
+	    if (MIME::Charset::USE_ENCODE()) {
 		$fenc = $charset->decoder->encode($fenc, FB_CROAK());
 		$renc = $charset->decoder->encode($renc, FB_CROAK());
 	    }
