@@ -3,7 +3,6 @@ use Test;
 
 BEGIN { plan tests => ($] >= 5.008001)? 17: 12 }
 
-use MIME::Charset qw(header_encode);
 use MIME::EncWords qw(encode_mimewords);
 $MIME::EncWords::Config = {
     Detect7bit => 'YES',
