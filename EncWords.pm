@@ -84,7 +84,7 @@ non-Latin multibyte characters with any 7 bit sequences):
 
 ### Pragmas:
 use strict;
-use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS @ISA);
+use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS @ISA $Config);
 
 ### Exporting:
 use Exporter;
@@ -123,7 +123,7 @@ if (MIME::Charset::USE_ENCODE) {
 $VERSION = '1.008';
 
 ### Public Configuration Attributes
-our $Config = {
+$Config = {
     %{$MIME::Charset::Config}, # Detect7bit, Replacement, Mapping
     Charset => 'ISO-8859-1',
     Encoding => 'A',

@@ -3,6 +3,7 @@
 	* Release 1.008.
 	* Bug Fix: Perl <=5.6.x: encode_mimewords(): ASCII words
 	  are encoded.
+	* Bug Fix: Perl <=5.005: our is ``deprecated''.
 
 2008-03-21	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
