@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.008';
+$VERSION = '1.009';
 
 ### Public Configuration Attributes
 $Config = {
@@ -423,8 +423,7 @@ sub _convert($$$$) {
 	return $s;
     }
     # build charset object to transform string from $charset to $cset.
-    $charset->{OutputCharset} = $cset->as_string;
-    $charset->{Encoder} = $cset->decoder;
+    $charset->encoder($cset);
 
     my $converted = $s;
     if (is_utf8($s) or $s =~ $WIDECHAR) {
@@ -703,9 +702,9 @@ sub encode_mimewords  {
 	    }
 	    $csetobj = MIME::Charset->new($cset, Mapping => $Params{Mapping});
 	    if ($Params{Replacement} =~ /^(CROAK|STRICT)$/) {
-		$s = $csetobj->decoder->encode($s, FB_CROAK());
+		$s = $csetobj->undecode($s, FB_CROAK());
 	    } else {
-		$s = $csetobj->decoder->encode($s, 0);
+		$s = $csetobj->undecode($s, 0);
 	    }
 	}
 
@@ -742,8 +741,7 @@ sub encode_mimewords  {
 	}
 
 	# Now no charset transformations are needed.
-	$csetobj->{Encoder} = $csetobj->decoder;
-	$csetobj->{OutputCharset} = $csetobj->as_string;
+	$csetobj->encoder($csetobj);
 
 	# Concatenate adjacent ``words'' so that multibyte sequences will
 	# be handled safely.
@@ -979,7 +977,7 @@ sub _clip_unsafe {
 	my $cur = int(($shorter + $longer + 1) / 2);
 	my $enc = substr($ustr, 0, $cur);
 	if (MIME::Charset::USE_ENCODE) {
-	    $enc = $charset->decoder->encode($enc);
+	    $enc = $charset->undecode($enc);
 	}
 	my $elen = $charset->encoded_header_len($enc, $encoding);
 	if ($elen <= $restlen) {
@@ -998,15 +996,15 @@ sub _clip_unsafe {
 	    ($fenc, $renc) =
 		(substr($ustr, 0, $shorter), substr($ustr, $shorter));
 	    if (MIME::Charset::USE_ENCODE) {
-		$fenc = $charset->decoder->encode($fenc, FB_CROAK());
-		$renc = $charset->decoder->encode($renc, FB_CROAK());
+		$fenc = $charset->undecode($fenc, FB_CROAK());
+		$renc = $charset->undecode($renc, FB_CROAK());
 	    }
 	};
 	last unless ($@);
 
 	$shorter++;
 	unless ($shorter < $max) { # Unencodable character(s) may be included.
-	    return ($charset->decoder->encode($ustr), "");
+	    return ($charset->undecode($ustr), "");
 	}
     }
 

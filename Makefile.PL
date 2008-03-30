@@ -6,11 +6,11 @@ WriteMakefile(
 	'VERSION_FROM'	=> 'EncWords.pm',
 	'PREREQ_PM'	=> ($] >= 5.008001)? {
 	    'Encode'		=> 1.98,
-	    'MIME::Charset'	=> 1.001,
+	    'MIME::Charset'	=> 1.004,
 	    'MIME::Base64'	=> 2.13,
 	    'Test'		=> 0,
 	}: {
-	    'MIME::Charset'	=> 1.001,
+	    'MIME::Charset'	=> 1.004,
 	    'MIME::Base64'	=> 2.13,
 	    'Test'		=> 0,
 	},
