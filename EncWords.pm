@@ -180,9 +180,9 @@ sub _encode_B {
 #     Improvement by this module: Spaces are escaped by ``_''.
 sub _encode_Q {
     my $str = shift;
-    # $str =~ s{([_\?\=$NONPRINT])}{sprintf("=%02X", ord($1))}eog;
-    $str =~ s{(\x20)|([_?=]|$NONPRINT)}{
-	defined $1? "_": sprintf("=%02X", ord($2))
+    # Restrict characters to those listed in RFC 2047 section 5 (3)
+    $str =~ s{[^-!*+/0-9A-Za-z]}{
+	$& eq "\x20"? "_": sprintf("=%02X", ord($&))
 	}eog;
     $str;
 }
@@ -788,23 +788,22 @@ sub encode_mimewords  {
     foreach (@triplets) {
 	my ($s, $enc, $csetobj) = @$_;
 
-	if ($enc and $restlen < $csetobj->encoded_header_len("\a", $enc) or
-	    !$enc and $restlen < length($s) - ($s =~ /^[\t ]/? 1: 0)) {
-	    $restlen = $maxrestlen;
-	}
-
 	push @splitted, &_split($s, $enc, $csetobj, $restlen, $maxrestlen);
 	my ($last, $lastenc, $lastcsetobj) = @{$splitted[-1]};
+	my $lastlen;
 	if ($lastenc) {
-	    $restlen -= $lastcsetobj->encoded_header_len($last, $lastenc);
+	    $lastlen = length(encode_mimeword($last, $lastenc,
+					      $lastcsetobj->output_charset));
 	} else {
-	    $restlen -= length($last); # FIXME: Sometimes estimated longer
+	    $lastlen = length($last);
 	}
+	$restlen -= $lastlen; # FIXME: Sometimes estimated longer
+	$restlen = $maxrestlen if $restlen <= 1;
     }
 
     # Do encoding.
     my @lines;
-    my $linelen = $firstlinelen;
+    $restlen = $firstlinelen;
     foreach (@splitted) {
 	my ($str, $encoding, $charsetobj) = @$_;
 	next unless length($str);
@@ -820,7 +819,7 @@ sub encode_mimewords  {
 		   $s =~ /^[\t ]/)? '': ' ';
 	if (!scalar(@lines)) {
 	    push @lines, $s;
-	} elsif (length($lines[-1].$spc.$s) <= $linelen) {
+	} elsif (length($lines[-1].$spc.$s) <= $restlen) {
 	    $lines[-1] .= $spc.$s;
 	} else {
 	    if ($lines[-1] =~ s/([\r\n\t ]+)$//) {
@@ -828,7 +827,7 @@ sub encode_mimewords  {
 	    }
 	    $s =~ s/^[\t ]//; # strip only one WSP replaced by that of FWS
 	    push @lines, $s;
-	    $linelen = $maxrestlen;
+	    $restlen = $maxrestlen;
 	}
     }
 
@@ -861,7 +860,8 @@ sub _split {
 
     my (@splitted, $ustr, $first);
     while (length($str)) {
-	if ($charset->encoded_header_len($str, $encoding) <= $restlen) {
+	if (length(encode_mimeword($str, $encoding,
+				   $charset->output_charset)) <= $restlen) {
 	    push @splitted, [$str, $encoding, $charset];
 	    last;
 	}
@@ -870,6 +870,13 @@ sub _split {
 	    $ustr = $charset->decode($ustr);
 	}
 	($first, $str) = &_clip_unsafe($ustr, $encoding, $charset, $restlen);
+	# retry splitting if failed
+	if ($first and !$str and
+	    $maxrestlen < length(encode_mimeword($first, $encoding,
+						 $charset->output_charset))) {
+	    ($first, $str) = &_clip_unsafe($ustr, $encoding, $charset,
+					   $maxrestlen);
+	}
 	push @splitted, [$first, $encoding, $charset];
 	$restlen = $maxrestlen;
     }
@@ -979,7 +986,8 @@ sub _clip_unsafe {
 	if (MIME::Charset::USE_ENCODE) {
 	    $enc = $charset->undecode($enc);
 	}
-	my $elen = $charset->encoded_header_len($enc, $encoding);
+	my $elen = length(encode_mimeword($enc, $encoding,
+					  $charset->output_charset));
 	if ($elen <= $restlen) {
 	    $shorter = $cur;
 	} else {

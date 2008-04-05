@@ -23,3 +23,14 @@ GOOD
 Perl: =?ISO-2022-JP?B?GyRCSUJFKkBeQ288ZzVBRSpHUUoqPVBOTzRvGyhC?=
  (Pathologically Eclectic Rubbish Lister)
 
+GOOD
+("Perl - Pathologically Eclectic Rubbish Lister \x1b\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x24r<B8=\x249\x24k8\x408l\x1b(B", Charset => "iso-2022-jp", Field => "")
+Perl - Pathologically Eclectic Rubbish Lister =?ISO-2022-JP?B?GyRCSUIbKEI=?=
+ =?ISO-2022-JP?B?GyRCRSpAXkNvPGc1QUUqR1FKKj1QTk80byRyPEI4PSQ5JGs4QDhsGyhC?=
+
+GOOD
+("Perl -- Pathologically Eclectic Rubbish Lister \x1b\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x24r<B8=\x249\x24k8\x408l\x1b(B", Charset => "iso-2022-jp", Field => "")
+Perl -- Pathologically Eclectic Rubbish Lister
+ =?ISO-2022-JP?B?GyRCSUJFKkBeQ288ZzVBRSpHUUoqPVBOTzRvJHI8Qjg9JDkkazhAGyhC?=
+ =?ISO-2022-JP?B?GyRCOGwbKEI=?=
+
