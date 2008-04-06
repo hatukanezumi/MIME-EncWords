@@ -8,6 +8,10 @@
 	* Fix: encoded-words exceeding line length can be generated.
 	* Modified some tests for singlebyte encode.
 	* Added tests for multibyte encode.
+	* encode_mimewords(): Improved encoding of unsafe ASCII
+	  sequences (words exceeding line length or including ``=?'').
+	* Imp: encode_mimeword(): can take charset object argument.
+	  In this case RAW can be Unicode string.
 
 2008-03-30	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
