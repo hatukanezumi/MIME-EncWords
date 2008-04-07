@@ -1,0 +1,29 @@
+GOOD
+([["Perl=?: "], ["\x1B\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x1B(B", "ISO-2022-JP"], [" (Pathologically Eclectic Rubbish Lister)"]])
+=?ISO-8859-1?Q?Perl=3D=3F=3A_?= =?ISO-2022-JP?B?GyRCSUJFKkBeQ288ZzVBGyhC?=
+ =?ISO-2022-JP?B?GyRCRSpHUUoqPVBOTzRvGyhC?= (Pathologically
+ Eclectic Rubbish Lister)
+
+GOOD
+([["Perl=?: "], ["\x1B\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x1B(B", "ISO-2022-JP"], [" (Pathologically Eclectic Rubbish Lister)"]], Charset => "EUC-JP")
+=?ISO-2022-JP?B?UGVybD0/OiAbJEJJQkUqQF5DbzxnNUFFKkdRSio9UE5PNG8bKEI=?=
+ (Pathologically Eclectic Rubbish Lister)
+
+GOOD
+("Perl=?: \x1B\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x1B(B (Pathologically Eclectic Rubbish Lister)", Charset => "iso-2022-jp")
+=?ISO-2022-JP?B?UGVybD0/OiAbJEJJQkUqQF5DbzxnNUFFKkdRSio9UE5PNG8bKEI=?=
+ (Pathologically Eclectic Rubbish Lister)
+
+GOOD
+("Peeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeerl: \x1B\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x1B(B (Pathologically Eclectic Rubbish Lister)", Charset => "iso-2022-jp")
+=?ISO-2022-JP?B?UGVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVl?=
+ =?ISO-2022-JP?B?ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZXJsOiA=?=
+ =?ISO-2022-JP?B?GyRCSUJFKkBeQ288ZzVBRSpHUUoqPVBOTzRvGyhC?= (Pathologically
+ Eclectic Rubbish Lister)
+
+GOOD
+("Perl: \x1B\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x1B(B (Pathologicalllllllllly-Ecleclecleclecleclectic-Rubbbbbbbbbbish-Listeeeeeer)", Charset => "iso-2022-jp")
+Perl: =?ISO-2022-JP?B?GyRCSUJFKkBeQ288ZzVBRSpHUUoqPVBOTzRvGyhCIChQYXRob2xv?=
+ =?ISO-2022-JP?B?Z2ljYWxsbGxsbGxsbGx5LUVjbGVjbGVjbGVjbGVjbGVjbGVjdGljLVJ1?=
+ =?ISO-2022-JP?B?YmJiYmJiYmJiYmlzaC1MaXN0ZWVlZWVlcik=?=
+

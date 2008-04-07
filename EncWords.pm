@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.009';
+$VERSION = '1.010';
 
 ### Public Configuration Attributes
 $Config = {
@@ -142,6 +142,7 @@ my $PRINTABLE = "\\x21-\\x7E";
 my $NONPRINT = qr{[^$PRINTABLE]}; # Improvement: Unicode support.
 my $UNSAFE = qr{[^\x01-\x20$PRINTABLE]};
 my $WIDECHAR = qr{[^\x00-\xFF]};
+my $ASCIITRANS = qr{^(?:HZ-GB-2312|UTF-7)$}i;
 
 #------------------------------
 
@@ -654,10 +655,10 @@ sub encode_mimewords  {
 			     ToUpper => [qw(Charset Encoding Mapping
 					    Replacement)],
 			    );
-    # checks
     croak "unsupported encoding ``$Params{Encoding}''"
 	unless $Params{Encoding} =~ /^[ABQS]$/;
-    my ($fwsbrk, $fwsspc);		# Newline and following WSP
+    # newline and following WSP
+    my ($fwsbrk, $fwsspc);
     if ($Params{Folding} =~ m/^([\r\n]*)([\t ]?)$/) {
 	$fwsbrk = $1;
 	$fwsspc = $2 || " ";
@@ -665,9 +666,14 @@ sub encode_mimewords  {
 	croak sprintf "illegal folding sequence ``\\x%*v02X''", '\\x',
 		      $Params{Folding};
     }
-    # calculate some variables
+    # charset objects
     my $charsetobj = MIME::Charset->new($Params{Charset},
 					Mapping => $Params{Mapping});
+    my $configcset = MIME::Charset->new($Config->{Charset},
+					Mapping => $Params{Mapping});
+    my $ascii = MIME::Charset->new("US-ASCII", Mapping => 'STANDARD');
+    $ascii->encoder($ascii);
+    # lengths
     my $firstlinelen = $Params{MaxLineLen} -
 	($Params{Field}? length("$Params{Field}: "): 0);
     my $maxrestlen = $Params{MaxLineLen} - length($fwsspc);
@@ -716,21 +722,31 @@ sub encode_mimewords  {
     my @triplets;
     foreach (@$words) {
 	my ($s, $cset) = @$_;
-	my $csetobj = MIME::Charset->new($cset, Mapping => $Params{Mapping});
+	my $csetobj = MIME::Charset->new($cset || "",
+					 Mapping => $Params{Mapping});
 	my $enc;
 
 	next unless length($s);
 
 	# Determine charset and encoding.
 	if ($Params{Encoding} eq "A") { # auto-detect with conversion
-	    my $obj = $cset? $csetobj: $charsetobj;
+	    # try defaults only if 7-bit charset detection is not required
+	    my $obj = $csetobj;
+	    unless ($obj->as_string) {
+		if ($Params{Detect7bit} eq "NO" or $s =~ /$UNSAFE/) {
+		    $obj = $charsetobj->as_string? $charsetobj: $configcset;
+		}
+	    }
 	    ($s, $cset, $enc) =
 		$obj->header_encode($s,
 				    Detect7bit => $Params{Detect7bit},
 				    Replacement => $Params{Replacement});
 	    if ($cset eq "US-ASCII" and !$enc and $s =~ /$UNSAFEASCII/) {
-		$cset = $charsetobj->output_charset || $Config->{Charset} ||
-		    "US-ASCII";
+		# unsafe ASCII sequences must be encoded
+		$cset = $csetobj->output_charset;
+		$cset = $charsetobj->output_charset unless $cset;
+		$cset = $configcset->output_charset unless $cset;
+		$cset = "US-ASCII" unless $cset;
 		$csetobj = MIME::Charset->new($cset,
 					      Mapping => $Params{Mapping});
 		$enc = $csetobj->header_encoding || 'Q';
@@ -739,32 +755,31 @@ sub encode_mimewords  {
 					      Mapping => $Params{Mapping});
 	    }
 	} elsif ($s !~ /[^\r\n\t $PRINTABLE]/) { # ASCII
-	    if ($s =~ /$UNSAFEASCII/) {
-		$cset = $charsetobj->as_string || $Config->{Charset} ||
-		    "US-ASCII";
-		$csetobj = MIME::Charset->new($cset,
-					      Mapping => $Params{Mapping});
+	    if ($csetobj->as_string =~ /$ASCIITRANS/) {
+		$enc = $Params{Encoding};
+	    } elsif ($s =~ /$UNSAFEASCII/) {
+		$csetobj = $charsetobj->dup unless $csetobj->as_string;
+		$csetobj = $configcset->dup unless $csetobj->as_string;
+		$csetobj = $ascii->dup unless $csetobj->as_string;
 		$enc = $Params{Encoding};
 	    } else {
-		$csetobj = MIME::Charset->new("US-ASCII",
-					      Mapping => "STANDARD");
+		$csetobj = $ascii->dup;
 		$enc = undef;
 	    }
-	} elsif (!$cset and (is_utf8($s) or $s =~ /$WIDECHAR/)) { # unknown
+	} elsif (!$cset and (is_utf8($s) or $s =~ /$WIDECHAR/)) {
+	    # unknown charset with Unicode data.  Fallback to UTF-8
 	    # try Charset option
 	    $@ = '';
 	    eval {
 		$charsetobj->undecode($s, FB_CROAK());
-		$csetobj = $charsetobj;
+		$csetobj = $charsetobj->dup;
 	    };
 	    # try default Charset option
 	    if ($@) {
 		$@ = '';
 		eval {
-		    my $obj = MIME::Charset->new($Config->{Charset},
-						 Mapping => $Params{Mapping});
-		    $obj->undecode($s, FB_CROAK());
-		    $csetobj = $obj;
+		    $configcset->undecode($s, FB_CROAK());
+		    $csetobj = $configcset->dup;
 		};
 	    }
 	    # otherwise, charset is UTF-8
@@ -773,8 +788,31 @@ sub encode_mimewords  {
 					      Mapping => 'STANDARD');
 	    }
 	    $enc = $Params{Encoding};
-	} elsif (!$cset) { # unknown; not decodable
-	    $enc = undef;
+	} elsif (!$cset and MIME::Charset::USE_ENCODE) {
+	    # unknown charset with byte data.
+	    $enc = $Params{Encoding};
+	    # try Charset option
+	    $@ = '';
+	    eval {
+		$charsetobj->decode($s, FB_CROAK());
+		$csetobj =  $charsetobj->dup;
+	    };
+	    # try default Charset option
+	    if ($@) {
+		$@ = '';
+		eval {
+		    $configcset->decode($s, FB_CROAK());
+		    $csetobj = $configcset->dup;
+		};
+	    }
+	    # otherwise, charset is unknown
+	    if ($@) {
+		$enc = undef;
+	    }
+	} elsif (!$cset) { # unknown charset without Unicode/multibyte support
+	    $csetobj = $charsetobj->dup;
+	    $csetobj = $configcset->dup unless $csetobj->as_string;
+	    $enc = $Params{Encoding};
 	} else {
 	    $enc = $Params{Encoding};
 	}
@@ -817,8 +855,8 @@ sub encode_mimewords  {
     }
 
     # chop leading FWS
-    while ($triplets[0]->[0] =~ s/^[\r\n\t ]+//) {
-	shift @triplets unless $triplets[0]->[0];
+    while (scalar(@triplets) and $triplets[0]->[0] =~ s/^[\r\n\t ]+//) {
+	shift @triplets unless length($triplets[0]->[0]);
     }
 
     # Split long ``words''.

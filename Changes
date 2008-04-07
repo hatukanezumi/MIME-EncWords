@@ -4,14 +4,17 @@
 	* encode_mimeword(): Restrict characters in encoded-words
 	  according to RFC 2047 section 5 (3).
 	  Note: length(encode_mimeword()) may not be equal to
-	  encoded_header_len() of MIME::Charset 1.005 or earlier.
+	  encoded_header_len() of MIME::Charset 1.004 or earlier.
+	* Bug Fix: Texts with ``US-ASCII transformation'' charset,
+	  i.e. HZ-GB-2312 (RFC 1842) and UTF-7 (RFC 2152), were
+	  treated as US-ASCII.
 	* Fix: encoded-words exceeding line length can be generated.
-	* Modified some tests for singlebyte encode.
-	* Added tests for multibyte encode.
 	* encode_mimewords(): Improved encoding of unsafe ASCII
 	  sequences (words exceeding line length or including ``=?'').
-	* Imp: encode_mimeword(): can take charset object argument.
+	* encode_mimeword(): can take charset object argument.
 	  In this case RAW can be Unicode string.
+	* Modified / added tests for multibyte / singlebyte / unsafe
+	  ASCII.
 
 2008-03-30	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
