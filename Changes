@@ -1,13 +1,13 @@
-2008-04-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.010.
 	* encode_mimeword(): Restrict characters in encoded-words
 	  according to RFC 2047 section 5 (3).
 	  Note: length(encode_mimeword()) may not be equal to
 	  encoded_header_len() of MIME::Charset 1.004 or earlier.
-	* Bug Fix: Texts with ``US-ASCII transformation'' charset,
-	  i.e. HZ-GB-2312 (RFC 1842) and UTF-7 (RFC 2152), were
-	  treated as US-ASCII.
+	* Bug Fix: Texts with ``US-ASCII transformation'' charsets,
+	  HZ-GB-2312 (RFC 1842) and UTF-7 (RFC 2152), were treated
+	  as US-ASCII.
 	* Fix: encoded-words exceeding line length can be generated.
 	* encode_mimewords(): Improved encoding of unsafe ASCII
 	  sequences (words exceeding line length or including ``=?'').

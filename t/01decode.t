@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => ($] >= 5.008001)? 42: 10 }
+BEGIN { plan tests => ($] >= 5.008001)? 48: 16 }
 
 use MIME::EncWords qw(decode_mimewords);
 $MIME::EncWords::Config = {
@@ -16,9 +16,7 @@ $MIME::EncWords::Config = {
     Minimal => 'YES',
 };
 
-my @testins = MIME::Charset::USE_ENCODE?
-	      qw(decode-singlebyte decode-multibyte):
-	      qw(decode-singlebyte);
+my @testins = qw(decode-singlebyte decode-multibyte decode-ascii);
 
 {
   local($/) = '';
@@ -32,7 +30,8 @@ my @testins = MIME::Charset::USE_ENCODE?
 	$isgood = (uc($isgood) eq 'GOOD');
 	($expect, $charset, $ucharset) = eval $expect;
 
-	my $dec = decode_mimewords($enc, Charset => $charset);
+	# Convert to raw data...
+	my $dec = decode_mimewords($enc);
 	ok((($isgood && !$@) or (!$isgood && $@)) and
            ($isgood ? ($dec eq $expect) : 1));
 	if (MIME::Charset::USE_ENCODE) {
