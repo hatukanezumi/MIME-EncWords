@@ -33,7 +33,7 @@ my @testins = MIME::Charset::USE_ENCODE?
 
 	my $enc = encode_mimewords(@params);
 	ok((($isgood && !$@) or (!$isgood && $@)) &&
-           ($isgood ? $enc : $expect), $expect, $enc);
+           ($isgood ? $enc : $expect), $expect, $@ || $enc);
     }
     close WORDS;
   }

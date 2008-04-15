@@ -120,7 +120,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.010';
+$VERSION = '1.010.1';
 
 ### Public Configuration Attributes
 $Config = {
@@ -336,7 +336,7 @@ sub decode_mimewords {
 	    }
 
 	    if (scalar(@tokens) and
-		lc($charset) eq lc($tokens[-1]->[1]) and
+		lc($charset || "") eq lc($tokens[-1]->[1] || "") and
 		resolve_alias($charset) and
 		(!${tokens[-1]}[2] and !$language or
 		 lc(${tokens[-1]}[2]) eq lc($language))) { # Concat words if possible.
@@ -695,13 +695,15 @@ sub encode_mimewords  {
 
 		# workaround for ``ASCII transformation'' charsets
 		my $u = $w;
-		if ($charsetobj->as_string =~ /$ASCIITRANS/ and $u =~ /[+~]/) {
-		    if ($charsetobj->decoder) {
-			$u = $charsetobj->decode($u);
-		    } elsif (!MIME::Charset::USE_ENCODE) { # for pre-Encode env.
-			$u = "X$u";
-		    } else { # NOTREACHED
-			croak __PACKAGE__.": Bug in encode_mimewords";
+		if ($charsetobj->as_string =~ /$ASCIITRANS/) {
+		    if (MIME::Charset::USE_ENCODE) {
+			if (is_utf8($w) or $w =~ /$WIDECHAR/) {
+			    $w = $charsetobj->undecode($u);
+			} else {
+			    $u = $charsetobj->decode($w);
+			}
+		    } elsif ($w =~ /[+~]/) { #FIXME: for pre-Encode environment
+		        $u = "x$w";
 		    }
 		}
 		if (scalar(@words)) {

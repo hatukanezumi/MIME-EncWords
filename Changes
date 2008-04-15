@@ -1,3 +1,11 @@
+2008-XX-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.0XX.
+	* Perl >= 5.8.1: Requires MIME::Charset 1.006.1.
+	* Perl >= 5.11.0: Suppress ``Use of uninitialized value
+	  within @_ in lc'' warnings.
+	* Improved ``ASCII transformation'' workaround (still buggy).
+
 2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.010.
