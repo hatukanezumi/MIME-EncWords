@@ -1,14 +1,30 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+--- #YAML:1.0
 name:         MIME-EncWords
-version:      1.010.10
-version_from: EncWords.pm
-installdirs:  site
+abstract:     deal with RFC 2047 encoded words (improved)
+version:      1.010.101
+author:
+  - Hatuka*nezumi - IKEDA Soji <hatuka@nezumi.nu>
+license:      perl
+distribution_type: module
 requires:
     Encode:                        1.98
     MIME::Base64:                  2.13
-    MIME::Charset:                 1.006.1
+    MIME::Charset:                 1.006.2
+    perl:                          5.005
+build_requires:
     Test:                          0
+provides:
+    MIME::EncWords:
+        file:                      EncWords.pm
+        version:                   1.010.101
+    MIME::EncWords::Defaults:
+        file:                      EncWords/Defaults.pm.sample
+    MIME::EncWords::JA_JP:
+        file:                      EncWords/JA_JP.pod
+resources:
+    repository: http://hatuka.nezumi.nu/repos/MIME-EncWords/
+meta-spec:
+   version: 1.3
+   url: http://module-build.sourceforge.net/META-spec-v1.3.html
+generated_by: author
 
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17

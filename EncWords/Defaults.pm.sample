@@ -1,3 +1,5 @@
+#-*- perl -*-
+
 package MIME::EncWords;
 
 =head1 NAME

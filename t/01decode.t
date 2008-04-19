@@ -34,7 +34,7 @@ my @testins = qw(decode-singlebyte decode-multibyte decode-ascii);
 	my $dec = decode_mimewords($enc);
 	ok((($isgood && !$@) or (!$isgood && $@)) and
            ($isgood ? ($dec eq $expect) : 1));
-	if (MIME::Charset::USE_ENCODE) {
+	if (MIME::Charset::USE_ENCODE ne '') {
 	    my $u;
 	    # Convert to other charset (or no conversion)...
 	    $u = $expect;

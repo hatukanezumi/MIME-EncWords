@@ -1,10 +1,13 @@
-2008-XX-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2008-04-19	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
-	* Release 1.0XX.
-	* Perl >= 5.8.1: Requires MIME::Charset 1.006.1.
-	* Perl >= 5.11.0: Suppress ``Use of uninitialized value
+	* Release 1.010.101 - tidinesses only; no new features.
+	* CPAN RT #34909, #35070 (depends on #35120):
+	  Perl >= 5.8.1 requires MIME::Charset >= 1.006.2.
+	* Perl 5.11.0: Suppress ``Use of uninitialized value
 	  within @_ in lc'' warnings.
-	* Improved ``ASCII transformation'' workaround (still buggy).
+	* Perl <= 5.6.2: Suppress ``Useless use of a constant in
+	  void context'' warnings.
+	* Correct META.yml & MANIFEST.
 
 2008-04-12	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 

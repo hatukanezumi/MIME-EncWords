@@ -1,6 +1,7 @@
+#-*- perl -*-
 
 package MIME::EncWords;
-use 5.005;
+require 5.005;
 
 =head1 NAME
 
@@ -120,7 +121,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.010.10';
+$VERSION = '1.010.101';
 
 ### Public Configuration Attributes
 $Config = {
@@ -986,7 +987,7 @@ sub _clip_unsafe {
     while ($shorter < $longer) {
 	my $cur = int(($shorter + $longer + 1) / 2);
 	my $enc = substr($ustr, 0, $cur);
-	if (MIME::Charset::USE_ENCODE) {
+	if (MIME::Charset::USE_ENCODE ne '') {
 	    $enc = $charset->undecode($enc);
 	}
 	my $elen = $charset->encoded_header_len($enc, $encoding);
@@ -1005,7 +1006,8 @@ sub _clip_unsafe {
 	eval {
 	    ($fenc, $renc) =
 		(substr($ustr, 0, $shorter), substr($ustr, $shorter));
-	    if (MIME::Charset::USE_ENCODE) {
+	    if (MIME::Charset::USE_ENCODE ne '') {
+		# FIXME: croak if $renc =~ /^\p{M}/
 		$fenc = $charset->undecode($fenc, FB_CROAK());
 		$renc = $charset->undecode($renc, FB_CROAK());
 	    }
