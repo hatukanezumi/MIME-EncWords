@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => ($] >= 5.008001)? 48: 16 }
+BEGIN { plan tests => ($] >= 5.008)? 48: 16 }
 
 use MIME::EncWords qw(decode_mimewords);
 $MIME::EncWords::Config = {

@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:         MIME-EncWords
 abstract:     deal with RFC 2047 encoded words (improved)
-version:      1.010.101
+version:      1.011_01
 author:
   - Hatuka*nezumi - IKEDA Soji <hatuka@nezumi.nu>
 license:      perl
@@ -9,14 +9,14 @@ distribution_type: module
 requires:
     Encode:                        1.98
     MIME::Base64:                  2.13
-    MIME::Charset:                 1.006.2
+    MIME::Charset:                 1.007
     perl:                          5.005
 build_requires:
     Test:                          0
 provides:
     MIME::EncWords:
         file:                      EncWords.pm
-        version:                   1.010.101
+        version:                   1.011_01
     MIME::EncWords::Defaults:
         file:                      EncWords/Defaults.pm.sample
     MIME::EncWords::JA_JP:

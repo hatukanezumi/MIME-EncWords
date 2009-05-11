@@ -121,7 +121,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.010.101';
+$VERSION = '1.011_01';
 
 ### Public Configuration Attributes
 $Config = {
@@ -386,7 +386,7 @@ sub decode_mimewords {
     if ($Params{Detect7bit} ne "NO") {
 	foreach my $t (@tokens) {
 	    unless ($t->[0] =~ $UNSAFE or $t->[1]) {
-		my $charset = &MIME::Charset::_detect_7bit_charset($t->[0]);
+		my $charset = MIME::Charset::_detect_7bit_charset($t->[0]);
 		if ($charset and $charset ne &MIME::Charset::default()) {
 		    $t->[1] = $charset;
 		}
@@ -417,11 +417,9 @@ sub _convert($$$$) {
     croak "unsupported charset ``".$cset->as_string."''"
 	unless $cset->decoder or $cset->as_string eq "_UNICODE_";
 
-    my $preserveerr = $@;
-
+    local($@);
     $charset = MIME::Charset->new($charset, Mapping => $mapping);
     if ($charset->as_string and $charset->as_string eq $cset->as_string) {
-	$@ = $preserveerr;
 	return $s;
     }
     # build charset object to transform string from $charset to $cset.
@@ -454,8 +452,6 @@ sub _convert($$$$) {
     } elsif ($charset->decoder) {
 	$converted = $charset->encode($s);
     }
-
-    $@ = $preserveerr;
     return $converted;
 }
 

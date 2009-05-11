@@ -1,3 +1,9 @@
+2009-05-11	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.011_01 - no new features.
+	* Supports Perl 5.8.0.
+	* MIME::Charset >= 1.007 is required.
+
 2008-04-19	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.010.101 - tidinesses only; no new features.
