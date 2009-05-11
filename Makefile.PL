@@ -8,11 +8,11 @@ WriteMakefile(
 	    'Encode'		=> 1.98,
 	    'MIME::Charset'	=> '1.007',
 	    'MIME::Base64'	=> 2.13,
-	    'Test'		=> 0,
+	    'Test::More'	=> 0,
 	}: {
 	    'MIME::Charset'	=> '1.006',
 	    'MIME::Base64'	=> 2.13,
-	    'Test'		=> 0,
+	    'Test::More'	=> 0,
 	},
 );
 

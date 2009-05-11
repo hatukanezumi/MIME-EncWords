@@ -12,7 +12,7 @@ requires:
     MIME::Charset:                 1.007
     perl:                          5.005
 build_requires:
-    Test:                          0
+    Test::More:                    0
 provides:
     MIME::EncWords:
         file:                      EncWords.pm
