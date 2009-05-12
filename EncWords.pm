@@ -121,7 +121,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.011_01';
+$VERSION = '1.011_02';
 
 ### Public Configuration Attributes
 $Config = {
@@ -533,7 +533,7 @@ B<**>
 RAW may be a Unicode string when Unicode/multibyte support is enabled
 (see L<MIME::Charset/USE_ENCODE>).
 Furthermore, RAW may be a reference to that returned
-by L<"decode_mimewords"> on array context.  In latter case "Charset"
+by L</decode_mimewords> on array context.  In latter case "Charset"
 option (see below) will be overridden (see also a note below).
 
 B<Note>:
@@ -590,7 +590,7 @@ B<**>
 
 A Sequence to fold encoded lines.  The default is C<"\n">.
 If empty string C<""> is specified, encoded-words exceeding line length
-(see L<"MaxLineLen"> below) will be splitted by SPACE.
+(see L</MaxLineLen> below) will be splitted by SPACE.
 
 B<Note>:
 B<*>
@@ -1074,9 +1074,9 @@ sub _getparams {
 =head2 Configuration Files
 B<**>
 
-Built-in defaults of option parameters for L<"decode_mimewords">
+Built-in defaults of option parameters for L</decode_mimewords>
 (except 'Charset' option) and
-L<"encode_mimewords"> can be overridden by configuration files:
+L</encode_mimewords> can be overridden by configuration files:
 F<MIME/Charset/Defaults.pm> and F<MIME/EncWords/Defaults.pm>.
 For more details read F<MIME/EncWords/Defaults.pm.sample>.
 
@@ -1102,7 +1102,7 @@ L<MIME::Words> module that was written by:
 Other stuff are rewritten or added by:
     Hatuka*nezumi - IKEDA Soji <hatuka(at)nezumi.nu>.
 
-All rights reserved.  This program is free software; you can redistribute
+This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
 =cut
