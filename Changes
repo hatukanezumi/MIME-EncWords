@@ -1,3 +1,8 @@
+2009-05-17	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.011 - no new features.
+	* Fix: Perl <= 5.6.x - skip tests with older POD::Simple.
+
 2009-05-11	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.011_01 - no new features.

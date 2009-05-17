@@ -121,7 +121,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.011_02';
+$VERSION = '1.011';
 
 ### Public Configuration Attributes
 $Config = {
