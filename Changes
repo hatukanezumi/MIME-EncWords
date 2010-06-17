@@ -1,3 +1,9 @@
+2010-06-17	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.012.
+	* encode_mimewords(): New option Minimal => 'DISPNAME' to help
+	  encoding RFC5322 name-addr.
+
 2009-06-16	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.011.1 - no new features.

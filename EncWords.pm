@@ -121,7 +121,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.011.1';
+$VERSION = '1.012';
 
 ### Public Configuration Attributes
 $Config = {
@@ -137,13 +137,13 @@ eval { require MIME::EncWords::Defaults; };
 
 ### Private Constants
 
-### Nonprintables (controls + x7F + 8bit):
-#my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
 my $PRINTABLE = "\\x21-\\x7E";
+#my $NONPRINT = "\\x00-\\x1F\\x7F-\\xFF";
 my $NONPRINT = qr{[^$PRINTABLE]}; # Improvement: Unicode support.
 my $UNSAFE = qr{[^\x01-\x20$PRINTABLE]};
 my $WIDECHAR = qr{[^\x00-\xFF]};
 my $ASCIITRANS = qr{^(?:HZ-GB-2312|UTF-7)$}i;
+my $DISPNAMESPECIAL = "\\x22(),:;<>\\x40\\x5C"; # RFC5322 name-addr specials.
 
 #------------------------------
 
@@ -625,12 +625,18 @@ If C<"NO"> is specified, this module will encode whole text
 (if encoding needed) not regarding whitespaces;
 encoded-words exceeding line length will be splitted based only on their
 lengths.
-Default is C<"YES">.
+Default is C<"YES"> by which minimal portions of text are encoded.
+If C<"DISPNAME"> is specified, portions including special characters
+described in RFC5322 address specification (section 3.4) are also encoded.
+This is useful for encoding display-name of address fields.
 
 B<Note>:
 As of release 0.040, default has been changed to C<"YES"> to ensure
 compatibility with MIME::Words.
 On earlier releases, this option was fixed to be C<"NO">.
+
+B<Note>:
+C<"DISPNAME"> option was introduced at release 1.012.
 
 =item Replacement
 B<**>
@@ -645,10 +651,11 @@ sub encode_mimewords  {
     my $words = shift;
     my %params = @_;
     my %Params = &_getparams(\%params,
-			     YesNo => [qw(Detect7bit Minimal)],
+			     YesNo => [qw(Detect7bit)],
 			     Others => [qw(Charset Encoding Field Folding
-					   Mapping MaxLineLen Replacement)],
-			     ToUpper => [qw(Charset Encoding Mapping
+					   Mapping MaxLineLen Minimal
+					   Replacement)],
+			     ToUpper => [qw(Charset Encoding Mapping Minimal
 					    Replacement)],
 			    );
     croak "unsupported encoding ``$Params{Encoding}''"
@@ -671,9 +678,18 @@ sub encode_mimewords  {
     my $firstlinelen = $Params{MaxLineLen} -
 	($Params{Field}? length("$Params{Field}: "): 0);
     my $maxrestlen = $Params{MaxLineLen} - length($fwsspc);
+    # minimal encoding flag
+    if (!$Params{Minimal}) {
+	$Params{Minimal} = 'NO';
+    } elsif ($Params{Minimal} !~ /^(NO|DISPNAME)$/) {
+	$Params{Minimal} = 'YES';
+    }
+    # unsafe ASCII sequences
     my $UNSAFEASCII = ($maxrestlen <= 1)?
 	qr{(?: =\? )}ox:
 	qr{(?: =\? | [$PRINTABLE]{$Params{MaxLineLen}} )}ox;
+    $UNSAFEASCII = qr{(?: [$DISPNAMESPECIAL] | $UNSAFEASCII )}ox
+	if $Params{Minimal} eq 'DISPNAME';
 
     unless (ref($words) eq "ARRAY") {
 	my @words = ();
@@ -681,7 +697,7 @@ sub encode_mimewords  {
 	$words =~ s/(?:[\r\n]+[\t ])*[\r\n]+([\t ]|\Z)/$1? " ": ""/eg;
 	$words =~ s/[\r\n]+/ /g;
 	# split if required
-	if ($Params{Minimal} eq "YES") {
+	if ($Params{Minimal} =~ /YES|DISPNAME/) {
 	    my ($spc, $unsafe_last) = ('', 0);
 	    foreach my $w (split(/([\t ]+)/, $words)) {
 		next unless scalar(@words) or length($w); # skip garbage
