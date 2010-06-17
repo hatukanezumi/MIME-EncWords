@@ -627,7 +627,8 @@ encoded-words exceeding line length will be splitted based only on their
 lengths.
 Default is C<"YES"> by which minimal portions of text are encoded.
 If C<"DISPNAME"> is specified, portions including special characters
-described in RFC5322 address specification (section 3.4) are also encoded.
+described in RFC5322 (former RFC2822, RFC822) address specification
+(section 3.4) are also encoded.
 This is useful for encoding display-name of address fields.
 
 B<Note>:
