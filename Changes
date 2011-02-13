@@ -1,3 +1,9 @@
+XXXX-XX-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.012.1.
+	* No new features: A few doc typos.
+	* Unicode/multibyte support on Perl 5.7.3 (experimental).
+
 2010-06-17	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.012.

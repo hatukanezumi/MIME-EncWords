@@ -106,6 +106,15 @@ use MIME::Charset qw(:trans);
 my @ENCODE_SUBS = qw(FB_CROAK is_utf8 resolve_alias);
 if (MIME::Charset::USE_ENCODE) {
     eval "use ".MIME::Charset::USE_ENCODE." \@ENCODE_SUBS;";
+    if ($@) { # Perl 5.7.3 + Encode 0.40
+	eval "use ".MIME::Charset::USE_ENCODE." qw(is_utf8);";
+	require MIME::Charset::_Compat;
+	for my $sub (@ENCODE_SUBS) {
+	    no strict "refs";
+	    *{$sub} = \&{"MIME::Charset::_Compat::$sub"}
+		unless $sub eq 'is_utf8';
+	}
+    }
 } else {
     require MIME::Charset::_Compat;
     for my $sub (@ENCODE_SUBS) {
@@ -121,7 +130,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.012';
+$VERSION = '1.012.1';
 
 ### Public Configuration Attributes
 $Config = {
@@ -412,7 +421,7 @@ sub _convert($$$$) {
     my $charset = shift;
     my $cset = shift;
     my $mapping = shift;
-    return $s unless MIME::Charset::USE_ENCODE;
+    return $s unless &MIME::Charset::USE_ENCODE;
     return $s unless $cset->as_string;
     croak "unsupported charset ``".$cset->as_string."''"
 	unless $cset->decoder or $cset->as_string eq "_UNICODE_";
@@ -540,7 +549,7 @@ B<Note>:
 B<*>
 When RAW is an arrayref,
 adjacent encoded-words (i.e. elements having non-ASCII charset element)
-are concatenated.  Then they are splitted taking
+are concatenated.  Then they are split taking
 care of character boundaries of multibyte sequences when Unicode/multibyte
 support is enabled.
 Portions for unencoded data should include surrounding whitespace(s), or
@@ -590,7 +599,7 @@ B<**>
 
 A Sequence to fold encoded lines.  The default is C<"\n">.
 If empty string C<""> is specified, encoded-words exceeding line length
-(see L</MaxLineLen> below) will be splitted by SPACE.
+(see L</MaxLineLen> below) will be split by SPACE.
 
 B<Note>:
 B<*>
@@ -623,7 +632,7 @@ Takes care of natural word separators (i.e. whitespaces)
 in the text to be encoded.
 If C<"NO"> is specified, this module will encode whole text
 (if encoding needed) not regarding whitespaces;
-encoded-words exceeding line length will be splitted based only on their
+encoded-words exceeding line length will be split based only on their
 lengths.
 Default is C<"YES"> by which minimal portions of text are encoded.
 If C<"DISPNAME"> is specified, portions including special characters

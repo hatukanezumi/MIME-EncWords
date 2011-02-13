@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => ($] >= 5.008)? 48: 16 }
+BEGIN { plan tests => ($] >= 5.007003)? 48: 16 }
 
 use MIME::EncWords qw(decode_mimewords);
 $MIME::EncWords::Config = {
@@ -15,6 +15,9 @@ $MIME::EncWords::Config = {
     MaxLineLen => 76,
     Minimal => 'YES',
 };
+if (&MIME::Charset::USE_ENCODE && $] < 5.008) {
+    require Encode::KR;
+}
 
 my @testins = qw(decode-singlebyte decode-multibyte decode-ascii);
 

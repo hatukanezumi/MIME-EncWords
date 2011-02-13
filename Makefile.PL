@@ -4,9 +4,9 @@ WriteMakefile(
 	'NAME'		=> 'MIME::EncWords',
 	'ABSTRACT_FROM'	=> 'EncWords.pm',
 	'VERSION_FROM'	=> 'EncWords.pm',
-	'PREREQ_PM'	=> ($] >= 5.008)? {
+	'PREREQ_PM'	=> ($] >= 5.007003)? {
 	    'Encode'		=> 1.98,
-	    'MIME::Charset'	=> '1.007.1',
+	    'MIME::Charset'	=> '1.008.1',
 	    'MIME::Base64'	=> 2.13,
 	    'Test::More'	=> 0,
 	}: {
