@@ -83,7 +83,7 @@ C<(^_^)>.
 =item decode_mimewords ENCODED, [OPTS...]
 
 I<関数>。
-文字列から RFC-1522 スタイルの "Q" エンコーディング
+文字列から RFC 2047 スタイルの "Q" エンコーディング
 (quoted-printable の一種) や "B" エンコーディング (base64)
 を探し、それをデコードする。
 

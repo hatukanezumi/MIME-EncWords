@@ -9,14 +9,17 @@ distribution_type: module
 requires:
     Encode:                        1.98
     MIME::Base64:                  2.13
-    MIME::Charset:                 1.008.1
+    MIME::Charset:                 1.008.2
     perl:                          5.005
 build_requires:
     Test::More:                    0
 provides:
     MIME::EncWords:
-        file:                      EncWords.pm
+        file:                      lib/MIME/EncWords.pm
         version:                   1.012.1
+    Encode::MIME::EncWords:
+        file:                      lib/Encode/MIME/EncWords.pm
+        version:                   0.001
 resources:
     repository: http://hatuka.nezumi.nu/repos/MIME-EncWords/
 meta-spec:

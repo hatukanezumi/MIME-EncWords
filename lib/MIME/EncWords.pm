@@ -10,7 +10,7 @@ MIME::EncWords - deal with RFC 2047 encoded words (improved)
 =head1 SYNOPSIS
 
 I<L<MIME::EncWords> is aimed to be another implimentation
-of L<MIME::Words> so that it will achive more exact conformance with
+of L<MIME::Words> so that it will achieve more exact conformance with
 RFC 2047 (former RFC 1522) specifications.  Additionally, it contains
 some improvements.
 Following synopsis and descriptions are inherited from its inspirer,
@@ -203,7 +203,7 @@ sub _encode_Q {
 =item decode_mimewords ENCODED, [OPTS...]
 
 I<Function.>
-Go through the string looking for RFC-1522-style "Q"
+Go through the string looking for RFC 2047-style "Q"
 (quoted-printable, sort of) or "B" (base64) encoding, and decode them.
 
 B<In an array context,> splits the ENCODED string into a list of decoded
