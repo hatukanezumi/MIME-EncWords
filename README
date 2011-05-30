@@ -7,13 +7,15 @@ under the same terms as Perl itself.
 
                                    ***
 
-One main module and some supporting program files are contained. For
-more details read following POD documentation:
+Two modules and some supporting program files are contained. For more
+details read following POD documentations:
 
     MIME::EncWords - deal with RFC 2047 encoded words (improved)
+    Encode::MIME::EncWords - MIME 'B' and 'Q' header encoding (alternative)
 
 For japonophones, POD in Japanese language is also included:
 
     MIME::EncWords::JA_JP - RFC 2047 encoded-word 関連 (改良版)
+    Encode::MIME::EncWords::JA_JP - MIME の「B」・「Q」ヘッダエンコーディング (代替案)
 
 $$
