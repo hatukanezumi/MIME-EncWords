@@ -130,7 +130,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.012.1';
+$VERSION = '1.012.2';
 
 ### Public Configuration Attributes
 $Config = {
@@ -784,6 +784,10 @@ sub encode_mimewords  {
 				Detect7bit => $Params{Detect7bit},
 				Replacement => $Params{Replacement},
 				Encoding => $Params{Encoding});
+	# FIXME:[*] Resolve 'S' encoding based on global length.
+	$enc = 'S' if $Params{Encoding} eq 'A' and
+	   $enc and $obj->header_encoding eq 'S';
+
 	# pure ASCII
 	if ($cset eq "US-ASCII" and !$enc and $s =~ /$UNSAFEASCII/) {
 	    # pure ASCII with unsafe sequences should be encoded
@@ -833,6 +837,34 @@ sub encode_mimewords  {
 	    }
 	}
 	push @triplets, [$s, $enc, $csetobj];
+    }
+
+    # FIXME:[*] Resolve 'S' encoding based on global length.
+    my @s_enc = grep { $_->[1] and $_->[1] eq 'S' } @triplets;
+    if (scalar @s_enc) {
+	my $enc;
+	my $b = scalar grep { $_->[1] and $_->[1] eq 'B' } @triplets;
+	my $q = scalar grep { $_->[1] and $_->[1] eq 'Q' } @triplets;
+	if ($b and ! $q) {
+	    $enc = 'B';
+	} elsif (! $b and $q) {
+	    $enc = 'Q';
+	} else {
+	    # if characters encoded by 'Q' are more than 6th of total,
+	    # 'B' will win.  This might give so much advantage to 'Q'...
+	    my @no_enc = grep { ! $_->[1] } @triplets;
+	    my $total = join '', map { $_->[0] } (@no_enc, @s_enc);
+	    my $q = join '', map { $_->[0] } @s_enc;
+	    $q =~ s{[- !*+/0-9A-Za-z]}{}g;
+	    if (length($total) < length($q) * 6) {
+		$enc = 'B';
+	    } else {
+		$enc = 'Q';
+	    }
+	}
+        foreach (@triplets) {
+	    $_->[1] = $enc if $_->[1] and $_->[1] eq 'S';
+	}
     }
 
     # chop leading FWS

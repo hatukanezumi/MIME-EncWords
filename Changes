@@ -1,3 +1,11 @@
+2011-XX-XX	Hatuka*nezumi - IKEDA Soji	 <hatuka@nezumi.nu>
+
+	* Release 1.012.2.
+	* Chg: UTF-8 header will more often be encoded using 'Q': Only if
+	  number of characters to be encoded are more than 6th of that of
+	  entire headers, it may be encoded by 'B'.
+	* Updated Encode::MIME::EncWords.
+
 2011-05-29	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.012.1.
