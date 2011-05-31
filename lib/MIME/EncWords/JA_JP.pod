@@ -202,7 +202,7 @@ I<関数>。
 
 B<**>
 RAW は Unicode でもよい。ただし Unicode/マルチバイト対応が有効な場合
-(see L<MIME::Charset::JA_JP/USE_ENCODE>)。
+(L<MIME::Charset::JA_JP/USE_ENCODE> 参照)。
 さらに RAW は、L</decode_mimewords>
 が配列コンテクストで返すものへの参照でもよい。
 後の場合は、"Charset" オプション (下記参照) が適宜上書きされる
@@ -334,7 +334,7 @@ F<MIME/Charset/Defaults.pm> と F<MIME/EncWords/Defaults.pm>。
 
 =head1 VERSION
 
-$VERSION 変数を参照してほしい。
+C<$VERSION> 変数を参照してほしい。
 
 このモジュールの開発版が
 L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>

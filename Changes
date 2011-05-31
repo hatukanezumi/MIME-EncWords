@@ -1,10 +1,15 @@
-2011-XX-XX	Hatuka*nezumi - IKEDA Soji	 <hatuka@nezumi.nu>
+2011-06-01	Hatuka*nezumi - IKEDA Soji	 <hatuka@nezumi.nu>
 
 	* Release 1.012.2.
-	* Chg: UTF-8 header will more often be encoded using 'Q': Only if
-	  number of characters to be encoded are more than 6th of that of
-	  entire headers, it may be encoded by 'B'.
+	* Chg: encode_mimewords(): By 'A' or 'S' encodings, 'Q' will be used
+	  more often: When number of bytes to be encoded exceeds 6th of
+	  entire bytes, words may be encoded by 'B'.  In other words,
+	  ``S encoding'' is to choose shorter one of 'B' or 'Q' according to
+	  length of maximally-encoded result.
+	* Fix: encode_mimewords(): Pure ASCII words containing unsafe sequence
+	  ignored Encoding option; encoded by header_encoding() of its charset.
 	* Updated Encode::MIME::EncWords.
+	* Added test #03 & #04.  Added UTF-8 cases to #02.
 
 2011-05-29	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 

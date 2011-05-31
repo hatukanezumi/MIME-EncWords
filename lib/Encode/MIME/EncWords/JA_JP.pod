@@ -4,7 +4,7 @@ use utf8;
 
 =head1 NAME
 
-Encode::MIME::EncWords::JA_JP - MIME の「B」・「Q」ヘッダエンコーディング (代替版)
+Encode::MIME::EncWords::JA_JP - MIME の「B」・「Q」ヘッダエンコーディング (代替案)
 
 =head1 SYNOPSIS
 
@@ -23,13 +23,14 @@ Encode::MIME::EncWords::JA_JP - MIME の「B」・「Q」ヘッダエンコー�
 
 =head1 ABSTRACT
 
-当モジュールは RFC 2047 に述べる MIME のヘッダエンコーディングを実装する。
+このモジュールは、RFC 2047 に述べる
+MIME のヘッダエンコーディングを実装している。
 エンコーディングの名前には、みっつの変種と、
 キャラクタセットに特化したひとつの簡易版がある。
 
   エンコーディング名         encode() の結果        備考
   ------------------------------------------------------------------
-  MIME-EncWords              (auto-detect B or Q)
+  MIME-EncWords              (B と Q を自動判別)
   MIME-EncWords-B            =?XXXX?B?...?=         初期値は UTF-8。
   MIME-EncWords-Q            =?XXXX?Q?...?=                ,,
   MIME-EncWords-ISO_2022_JP  =?ISO-2022-JP?B?...?=
@@ -39,7 +40,7 @@ decode() の結果は、どのエンコーディングでも同じになる。
 =head1 DESCRIPTION
 
 このモジュールは、L<Encode::MIME::Header> コアモジュールが提供する
-C<MIME-Header> エンコーディングの代替となることを意図している。
+C<MIME-Header*> エンコーディングの代替となることを意図している。
 このモジュールの使いかたをよく知るためには、L<Encode> を参照してほしい。
 
 =head2 モジュール独自の機能
@@ -91,7 +92,7 @@ C<MIME-EncWords-ISO_2022_JP> では C<"ISO-2022-JP"> に固定。
 
 オプションの詳細については L<MIME::EncWords::JA_JP> を参照。
 
-B<注:>
+B<Note:>
 初期値のうち Charset、Detect7bit、Mapping のものは L<MIME::EncWords::JA_JP>
 のものと異なる。
 
@@ -103,8 +104,9 @@ B<注:>
 
 =item *
 
-MIME ヘッダエンコーディング用のエンコーディングモジュールというものは、
-こみいったヘッダフィールドでも簡単に処理できる打出の小槌ではない。
+MIME ヘッダエンコーディング用のエンコーディングモジュールは、
+こみいったヘッダフィールドを簡単に作ったり、
+そこから望みの要素を取り出したりできる打ち出の小槌ではない。
 
 アドレスヘッダフィールド (To:、From: など) をデコードするには、
 まず mailbox-list を分解する。
@@ -130,12 +132,12 @@ C<$VERSION> 変数を参照してほしい。
 
 B<これは実験的なリリースである。仕様は近い将来、変わるかもしれない。>
 
-このパッケージの開発版が次の場所でみつかる。
+このパッケージの開発版が次の場所にある。
 L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>。
 
 =head1 SEE ALSO
 
-L<Encode>, L<Encode::MIME::Header>, L<MIME::EncWords>.
+L<Encode>, L<Encode::MIME::Header>, L<MIME::EncWords::JA_JP>.
 
 RFC 2047 I<MIME (Multipurpose Internet Mail Extensions) Part Three:
 Message Header Extensions for Non-ASCII Text>.

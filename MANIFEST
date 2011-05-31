@@ -2,6 +2,7 @@ ARTISTIC
 Changes
 GPL
 lib/Encode/MIME/EncWords.pm
+lib/Encode/MIME/EncWords/JA_JP.pod
 lib/MIME/EncWords.pm
 lib/MIME/EncWords/Defaults.pm.sample
 lib/MIME/EncWords/JA_JP.pod
@@ -11,6 +12,8 @@ META.yml			Module meta-data (added by author)
 README
 t/01decode.t
 t/02encode.t
+t/03Encode-MIME-EncWords.t
+t/04Encode-MIME-EncWords-ISO_2022_JP.t
 t/pod.t
 testin/decode-ascii.txt
 testin/decode-multibyte.txt
@@ -18,3 +21,4 @@ testin/decode-singlebyte.txt
 testin/encode-ascii.txt
 testin/encode-multibyte.txt
 testin/encode-singlebyte.txt
+testin/encode-utf-8.txt

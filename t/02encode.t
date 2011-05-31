@@ -1,7 +1,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => ($] >= 5.007003)? 26: 12 }
+BEGIN { plan tests => ($] >= 5.007003)? 32: 12 }
 
 use MIME::EncWords qw(encode_mimewords);
 $MIME::EncWords::Config = {
@@ -21,7 +21,7 @@ if (&MIME::Charset::USE_ENCODE && $] < 5.008) {
 }
 
 my @testins = MIME::Charset::USE_ENCODE?
-	      qw(encode-singlebyte encode-multibyte encode-ascii):
+	      qw(encode-singlebyte encode-multibyte encode-ascii encode-utf-8):
 	      qw(encode-singlebyte);
 
 {

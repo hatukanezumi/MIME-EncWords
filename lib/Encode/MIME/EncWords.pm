@@ -166,7 +166,7 @@ All encodings generate the same result by decode().
 
 =head1 DESCRIPTION
 
-This module is intended to be an alternative of C<MIME-Header> encoding
+This module is intended to be an alternative of C<MIME-Header*> encodings
 provided by L<Encode::MIME::Header> core module.
 To find out how to use this module in detail, see L<Encode>.
 
@@ -230,8 +230,8 @@ L<MIME::EncWords>.
 
 =item *
 
-Encoding modules for MIME header encoding are not the magic porridge pot to
-cook complex header fields properly.
+The encoding modules for MIME header encoding are not the
+magic porridge pot to cook complex header fields properly.
 
 To decode address header fields (From:, To:, ...), at first parse
 mailbox-list; then decode each element by encoding module.
