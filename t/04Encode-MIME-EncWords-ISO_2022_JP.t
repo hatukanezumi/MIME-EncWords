@@ -20,7 +20,8 @@ BEGIN{
 require_ok('Encode::MIME::EncWords');
 
 # Codes below are derived from mime_header_iso2022jp.t in Encode,
-# originally from mime.t in Jcode
+# originally from mime.t in Jcode.
+# Non-ASCII characters are escaped but code values are intact.
 
 my %mime = (
     "\xb4\xc1\xbb\xfa\xa1\xa2\xa5\xab\xa5\xbf\xa5\xab\xa5\xca\xa1\xa2\xa4\xd2\xa4\xe9\xa4\xac\xa4\xca"

@@ -11,7 +11,7 @@ MIME::EncWords - deal with RFC 2047 encoded words (improved)
 
 I<L<MIME::EncWords> is aimed to be another implimentation
 of L<MIME::Words> so that it will achieve more exact conformance with
-RFC 2047 (former RFC 1522) specifications.  Additionally, it contains
+RFC 2047 (formerly RFC 1522) specifications.  Additionally, it contains
 some improvements.
 Following synopsis and descriptions are inherited from its inspirer,
 then added descriptions on improvements (B<**>) or changes and
@@ -130,7 +130,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.012.2';
+$VERSION = '1.012.3';
 
 ### Public Configuration Attributes
 $Config = {
@@ -603,7 +603,8 @@ If empty string C<""> is specified, encoded-words exceeding line length
 
 B<Note>:
 B<*>
-Though RFC 2822 states that the lines are delimited by CRLF (C<"\r\n">), 
+Though RFC 5322 (formerly RFC 2822) states that the lines in
+Internet messages are delimited by CRLF (C<"\r\n">), 
 this module chose LF (C<"\n">) as a default to keep backward compatibility.
 When you use the default, you might need converting newlines
 before encoded headers are thrown into session.
@@ -636,7 +637,7 @@ encoded-words exceeding line length will be split based only on their
 lengths.
 Default is C<"YES"> by which minimal portions of text are encoded.
 If C<"DISPNAME"> is specified, portions including special characters
-described in RFC5322 (former RFC2822, RFC822) address specification
+described in RFC5322 (formerly RFC2822, RFC822) address specification
 (section 3.4) are also encoded.
 This is useful for encoding display-name of address fields.
 
@@ -785,8 +786,10 @@ sub encode_mimewords  {
 				Replacement => $Params{Replacement},
 				Encoding => $Params{Encoding});
 	# Resolve 'S' encoding based on global length. See (*).
-	$enc = 'S' if $Params{Encoding} =~ /[AS]/ and
-		      $enc and $obj->header_encoding eq 'S';
+	$enc = 'S'
+	    if defined $enc and
+	       ($Params{Encoding} eq 'S' or
+		$Params{Encoding} eq 'A' and $obj->header_encoding eq 'S');
 
 	# pure ASCII
 	if ($cset eq "US-ASCII" and !$enc and $s =~ /$UNSAFEASCII/) {

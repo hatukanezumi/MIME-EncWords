@@ -40,7 +40,7 @@ decode() の結果は、どのエンコーディングでも同じになる。
 =head1 DESCRIPTION
 
 このモジュールは、L<Encode::MIME::Header> コアモジュールが提供する
-C<MIME-Header*> エンコーディングの代替となることを意図している。
+C<MIME-*> エンコーディングの代替となることを意図している。
 このモジュールの使いかたをよく知るためには、L<Encode> を参照してほしい。
 
 =head2 モジュール独自の機能
@@ -65,7 +65,7 @@ C<MIME-EncWords-ISO_2022_JP> では C<"ISO-2022-JP"> に固定。
 
 [decode/encode] エンコードされていない部分の
 7 ビットキャラクタセットを判別しようとする。
-初期値は C<"NO">。
+初期値は C<"YES">。
 
 =item Field
 
@@ -76,7 +76,7 @@ C<MIME-EncWords-ISO_2022_JP> では C<"ISO-2022-JP"> に固定。
 =item Mapping
 
 [decode/encode] キャラクタセットの名前に対して実際に使うマッピングを指定する。
-初期値は C<"STANDARD">。
+初期値は C<"EXTENDED">。
 
 =item MaxLineLen
 
@@ -92,10 +92,6 @@ C<MIME-EncWords-ISO_2022_JP> では C<"ISO-2022-JP"> に固定。
 
 オプションの詳細については L<MIME::EncWords::JA_JP> を参照。
 
-B<Note:>
-初期値のうち Charset、Detect7bit、Mapping のものは L<MIME::EncWords::JA_JP>
-のものと異なる。
-
 =back
 
 =head1 CAVEAT
@@ -105,7 +101,7 @@ B<Note:>
 =item *
 
 MIME ヘッダエンコーディング用のエンコーディングモジュールは、
-こみいったヘッダフィールドを簡単に作ったり、
+こみいったヘッダフィールドを簡単に作り出したり、
 そこから望みの要素を取り出したりできる打ち出の小槌ではない。
 
 アドレスヘッダフィールド (To:、From: など) をデコードするには、
@@ -116,6 +112,12 @@ MIME ヘッダエンコーディング用のエンコーディングモジュー
 そして、エンコードした要素から mailbox-list を組み立てる。
 mailbox-list の組み立てや分解には、L<Mail::Address>
 のようなモジュールが使えるだろう。
+
+=item *
+
+行を LF (C<"\n">) で区切る。
+RFC5322 は、インターネットのメッセージでは行を CRLF (C<"\r\n">)
+で区切るとしている。
 
 =back
 

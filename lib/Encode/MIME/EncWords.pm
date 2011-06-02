@@ -5,23 +5,20 @@ require 5.007003;
 
 use strict;
 use warnings;
-no warnings 'redefine';
-use vars qw($VERSION);
-
+use Carp qw(croak carp);
 use MIME::EncWords;
-use Carp;
 
-$VERSION = '0.02';
+our $VERSION = '0.03';
+
+# Default of options
 my $Config = {
-    Charset   => 'UTF-8',    # *
-    Detect7bit => 'NO',      # *
-    #Encoding --- specified by each subclasses.
-    Field     => undef,
-    #Folding --- fixed to "\n".
-    Mapping   => 'STANDARD', # *
-    MaxLineLen => 76,
-    Minimal   => 'YES',
-    #Replacement --- given by encode()/decode().
+    Charset => 'UTF-8',
+    # Encoding => specified by each subclass.
+    # Folding => fixes to "\n".
+    # Replacement => given by encode()/decode().
+    # others => derived from MIME::EncWords:
+    map { ($_ => $MIME::EncWords::Config->{$_}) }
+	qw(Detect7bit Field Mapping MaxLineLen Minimal)
 };
 
 $Encode::Encoding{'MIME-EncWords'} = bless {
@@ -51,71 +48,100 @@ sub needs_lines { 1 }
 sub perlio_ok   { 0 }
 
 sub decode($$;$) {
-    my ( $obj, $str, $chk ) = @_;
+    my ($obj, $str, $chk) = @_;
 
     my %opts = map { ($_ => ($obj->{$_} || $Config->{$_})) }
         qw(Detect7bit Mapping);
-    $opts{Charset} = '_UNICODE_';
+    my $repl = ($chk & 4) ? ($chk & ~4 | 1) : $chk;
 
-    $str =~ s/\r\n|[\r\n]/\n/g;
-    $str =~ s/\n([ \t])/$1/g;
-    my $nl = '';
-    $nl = $1 if $str =~ s/(\n+)\z//;
-    my @lines = split /\n/, $str;
+    local $@;
+    my $ret = undef;
+    pos($str) = 0;
+    LINES: foreach my $line (
+	$str =~ m{ \G (.*?) (?:\r\n|[\r\n]) (?![ \t]) }cgsx,
+	substr($str, pos($str))
+    ) {
+	if (defined $ret) {
+	    $ret .= "\n";
+	} else {
+	    $ret = '';
+	}
+	next unless length $line;
 
-    my @result = ();
-    foreach my $s (@lines) {
-        local($@);
-        $s = MIME::EncWords::decode_mimewords($s, %opts) if length $s;
-        push @result, $s;
-        if ($@) {
-            croak $@ if $chk & 1;
-            carp $@ if $chk & 2;
-            last if $chk & 4;            
-        }
+	my @words = MIME::EncWords::decode_mimewords($line, %opts);
+	if ($@) { # broken MIME encoding(s).
+	    croak $@ if $chk & 1;   # DIE_ON_ERR
+	    carp $@ if $chk & 2;    # WARN_ON_ERR
+	    last if $chk & 4;       # RETURN_ON_ERR
+	}
+	foreach my $word (@words) {
+	    my $cset = MIME::Charset->new(($word->[1] || 'US-ASCII'),
+					  Mapping => $opts{Mapping});
+	    if (! $cset->decoder) { # unknown charset or ``8BIT''.
+		$@ = 'Unknown charset '.$cset->as_string;
+		croak $@ if $chk & 1;
+		carp $@ if $chk & 2;
+		last LINES if $chk & 4;
+		$ret .= Encode::decode("US-ASCII", $word->[0], 0);
+	    } else {
+		eval {
+		    $ret .= $cset->decode($word->[0], $repl);
+		};
+		if ($@) {
+		    $@ =~ s/ at .+? \d+[.\n]*$//; 
+		    croak $@ if $chk & 1;
+		    carp $@ if $chk & 2;
+		    last LINES if $@ and $chk & 4;
+		}
+	    }
+	}
     }
 
-    $str = join("\n", @result).$nl;
-    $_[1] = $str if $chk;
-    return $str;
+    $_[1] = $ret if $chk;
+    return $ret;
 }
 
 sub encode($$;$) {
-    my ( $obj, $str, $chk ) = @_;
+    my ($obj, $str, $chk) = @_;
 
     my %opts = map { ($_ => ($obj->{$_} || $Config->{$_})) }
         qw(Charset Detect7bit Encoding Field Mapping MaxLineLen Minimal);
     $opts{Charset} ||= 'UTF-8';
     $opts{Folding} = "\n";
     $opts{Replacement} = $chk || 0;
+    my $repl = ($chk & 4) ? ($chk & ~4 | 1) : $chk;
 
     $str = Encode::decode('ISO-8859-1', $str)
         if ! Encode::is_utf8($str) and $str =~ /[^\x00-\x7F]/;
 
-    $str =~ s/\r\n|[\r\n]/\n/g;
-    $str =~ s/\n([ \t])/$1/g;
-    my $nl = '';
-    $nl = $1 if $str =~ s/(\n+)\z//;
-    my @lines = split /\n/, $str;
+    local $@;
+    my $ret = undef;
+    pos($str) = 0;
+    foreach my $line (
+        $str =~ m{ \G (.*?) (?:\r\n|[\r\n]) (?![ \t]) }cgsx,
+        substr($str, pos($str))
+    ) {
+	if (defined $ret) {
+	    $ret .= "\n";
+	} else {
+	    $ret = '';
+	}
+	next unless length $line;
 
-    $str = '';
-    my @result = ();
-    foreach my $s (@lines) {
-        local($@);
-        eval {
-            $s = MIME::EncWords::encode_mimewords($s, %opts) if length $s;
-        };
-        push @result, $s;
-        if ($@) {
-            croak $@ if $chk & 1;
-            carp $@ if $chk & 2;
-            last if $chk & 4;
-        }
+	eval {
+	    $ret .= MIME::EncWords::encode_mimewords($line, %opts,
+						     Replacement => $repl);
+	};
+	if ($@) {
+	    $@ =~ s/ at .+? \d+[.\n]*$//;
+	    croak $@ if $chk & 1;   # DIE_ON_ERR
+	    carp $@ if $chk & 2;    # WARN_ON_ERR
+	    last if $chk & 4;	    # RETURN_ON_ERR
+	}
     }
 
-    $str = join("\n", @result).$nl;
-    $_[1] = '' if $chk;
-    return $str;
+    $_[1] = '' if $chk and ! ($chk & 8); # FIXME:is LEAVE_SRC possible?
+    return $ret;
 }
 
 sub config {
@@ -166,7 +192,7 @@ All encodings generate the same result by decode().
 
 =head1 DESCRIPTION
 
-This module is intended to be an alternative of C<MIME-Header*> encodings
+This module is intended to be an alternative of C<MIME-*> encodings
 provided by L<Encode::MIME::Header> core module.
 To find out how to use this module in detail, see L<Encode>.
 
@@ -191,7 +217,7 @@ On C<MIME-EncWords-ISO_2022_JP> it is fixed to C<"ISO-2022-JP">.
 =item Detect7bit
 
 [decode/encode] Try to detect 7-bit charset on unencoded portions.
-Default is C<"NO">.
+Default is C<"YES">.
 
 =item Field
 
@@ -202,7 +228,7 @@ Default is C<undef>.
 =item Mapping
 
 [decode/encode] Specify mappings actually used for charset names.
-Default is C<"STANDARD">.
+Default is C<"EXTENDED">.
 
 =item MaxLineLen
 
@@ -217,10 +243,6 @@ Default is C<"YES">.
 =back
 
 For more details about options see L<MIME::EncWords>.
-
-B<Note:>
-Defaults for Charset, Detect7bit and Mapping options differ from those of
-L<MIME::EncWords>.
 
 =back
 
@@ -239,6 +261,12 @@ To encode them, at first encode each element by encoding module; then
 construct mailbox-list of encoded elements.
 To construct or parse mailbox-list, some modules such as L<Mail::Address>
 may be used.
+
+=item *
+
+Lines are delimited with LF (C<"\n">).
+RFC5322 states that lines in Internet messages are delimited with
+CRLF (C<"\r\n">).
 
 =back
 
