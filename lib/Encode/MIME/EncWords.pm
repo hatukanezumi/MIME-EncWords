@@ -52,52 +52,87 @@ sub decode($$;$) {
 
     my %opts = map { ($_ => ($obj->{$_} || $Config->{$_})) }
         qw(Detect7bit Mapping);
-    my $repl = ($chk & 4) ? ($chk & ~4 | 1) : $chk;
+    $chk = 0 if ref $chk; # coderef not supported.
+    my $repl = (! ref $chk and $chk & 4) ? ($chk & ~4 | 1) : $chk;
 
     local $@;
+    my $skip = 0; # for RETURN_ON_ERR
     my $ret = undef;
     pos($str) = 0;
-    LINES: foreach my $line (
+    foreach my $line (
 	$str =~ m{ \G (.*?) (?:\r\n|[\r\n]) (?![ \t]) }cgsx,
 	substr($str, pos($str))
     ) {
 	if (defined $ret) {
-	    $ret .= "\n";
+	    $ret .= "\n" unless $skip;
 	} else {
 	    $ret = '';
+	}
+	if ($skip) {
+	    $_[1] .= "\n";
+	    $_[1] .= $line;
+	    next;
 	}
 	next unless length $line;
 
 	my @words = MIME::EncWords::decode_mimewords($line, %opts);
-	if ($@) { # broken MIME encoding(s).
+	if ($@) { # broken MIME encoding.
 	    croak $@ if $chk & 1;   # DIE_ON_ERR
 	    carp $@ if $chk & 2;    # WARN_ON_ERR
-	    last if $chk & 4;       # RETURN_ON_ERR
+	    if ($chk & 4) {         # RETURN_ON_ERR
+		$_[1] = $line;
+		$skip = 1;
+		next;
+	    }
 	}
-	foreach my $word (@words) {
+	for (my $i = 0; $i <= $#words; $i++) {
+	    my $word = $words[$i];
 	    my $cset = MIME::Charset->new(($word->[1] || 'US-ASCII'),
 					  Mapping => $opts{Mapping});
 	    if (! $cset->decoder) { # unknown charset or ``8BIT''.
-		$@ = 'Unknown charset '.$cset->as_string;
+		$@ = 'Unknown charset "'.$cset->as_string.'"';
 		croak $@ if $chk & 1;
 		carp $@ if $chk & 2;
-		last LINES if $chk & 4;
-		$ret .= Encode::decode("US-ASCII", $word->[0], 0);
-	    } else {
-		eval {
-		    $ret .= $cset->decode($word->[0], $repl);
-		};
-		if ($@) {
-		    $@ =~ s/ at .+? \d+[.\n]*$//; 
-		    croak $@ if $chk & 1;
-		    carp $@ if $chk & 2;
-		    last LINES if $@ and $chk & 4;
+		if ($chk & 4) {
+		    # already decoded... re-encoding
+		    $_[1] =
+			MIME::EncWords::encode_mimewords([splice @words, $i],
+							 Encoding => 'B',
+							 Folding => '',
+							 MaxLineLen => -1);
+		    $skip = 1;
+		    last;
+		}
+		$ret .= Encode::decode("ISO-8859-1", $word->[0], 0); #FIXME
+
+		next;
+	    }
+	    eval {
+		$ret .= $cset->decode($word->[0], $repl);
+	    };
+	    if ($@) {
+		$@ =~ s/ at .+? line \d+[.\n]*$//; 
+		croak $@ if $chk & 1;
+		carp $@ if $chk & 2;
+		if ($chk & 4) {
+		    # already decoded... re-encoding
+		    $_[1] =
+			MIME::EncWords::encode_mimewords([splice @words, $i],
+							 Encoding => 'B',
+							 Folding => '',
+							 MaxLineLen => -1);
+		    $skip = 1;
+		    last;
 		}
 	    }
 	}
     }
 
-    $_[1] = $ret if $chk;
+    if ($chk & 4) { # RETURN_ON_ERR
+	$_[1] = '' unless $skip;
+    } elsif ($chk) { # ! LEAVE_SRC
+	$_[1] = $ret unless $chk & 8;
+    }
     return $ret;
 }
 
@@ -108,13 +143,14 @@ sub encode($$;$) {
         qw(Charset Detect7bit Encoding Field Mapping MaxLineLen Minimal);
     $opts{Charset} ||= 'UTF-8';
     $opts{Folding} = "\n";
-    $opts{Replacement} = $chk || 0;
+    $chk = 0 if ref $chk; # coderef not supported.
     my $repl = ($chk & 4) ? ($chk & ~4 | 1) : $chk;
 
     $str = Encode::decode('ISO-8859-1', $str)
         if ! Encode::is_utf8($str) and $str =~ /[^\x00-\x7F]/;
 
     local $@;
+    my $skip = 0; # for RETURN_ON_ERR
     my $ret = undef;
     pos($str) = 0;
     foreach my $line (
@@ -122,9 +158,14 @@ sub encode($$;$) {
         substr($str, pos($str))
     ) {
 	if (defined $ret) {
-	    $ret .= "\n";
+	    $ret .= "\n" unless $skip;
 	} else {
 	    $ret = '';
+	}
+	if ($skip) {
+	    $_[1] .= "\n";
+	    $_[1] .= $line;
+	    next;
 	}
 	next unless length $line;
 
@@ -133,14 +174,22 @@ sub encode($$;$) {
 						     Replacement => $repl);
 	};
 	if ($@) {
-	    $@ =~ s/ at .+? \d+[.\n]*$//;
+	    $@ =~ s/ at .+? line \d+[.\n]*$//;
 	    croak $@ if $chk & 1;   # DIE_ON_ERR
 	    carp $@ if $chk & 2;    # WARN_ON_ERR
-	    last if $chk & 4;	    # RETURN_ON_ERR
+	    if ($chk & 4) {         # RETURN_ON_ERR
+		$_[1] = $line;
+		$skip = 1;
+		next;
+	    }
 	}
     }
 
-    $_[1] = '' if $chk and ! ($chk & 8); # FIXME:is LEAVE_SRC possible?
+    if ($chk & 4) { # RETURN_ON_ERR
+	$_[1] = '' unless $skip;
+    } elsif ($chk) { # ! LEAVE_SRC
+	$_[1] = '' unless $chk & 8; # FIXME:spec?
+    } 
     return $ret;
 }
 

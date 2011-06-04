@@ -1,7 +1,11 @@
 2011-06-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.012.3.
-	* Fix: MIME::EncWords::encode_mimewords(): inproper handling of 'S'.
+	* Fix: encode_mimewords(): inproper handling of Encoding => 'S'.
+	* Imp: decode_mimewords(): Broken "Q" encoding also warned: "=" not
+	  leading two hexdigits (raw " " and "\t" are allowed).
+	* Imp: encode_mimewords(): negative MaxLineLen allows unlimited length
+	  of line.
 	* Encode::MIME::EncWords: Rewritten. 0.03.
 	  - Any newlines not forming folding white space are preserved.
 	    cf. CPAN RT #68582 for standard encodings.
