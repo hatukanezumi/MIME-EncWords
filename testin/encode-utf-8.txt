@@ -25,8 +25,8 @@ GOOD
  elit, sed do eiusmod!!
 
 GOOD
-([["\xc3\x81rv\xc3\xadzt\xc5\xb1r\xc5\x91",'utf-8'], ["t\xc3\xbck\xc3\xb6rf\xc3\xbar\xc3\xb3g\xc3\xa9p",'utf-8'], ['---lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore. '], ["\xbb\xfa", 'euc-jp']])
+([["\xc3\x81rv\xc3\xadzt\xc5\xb1r\xc5\x91",'utf-8'], ["t\xc3\xbck\xc3\xb6rf\xc3\xbar\xc3\xb3g\xc3\xa9p",'utf-8'], ['---lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore'], ["\xa1\xc4", 'euc-jp']])
 =?UTF-8?B?w4FydsOtenTFsXLFkXTDvGvDtnJmw7pyw7Nnw6lwLS0tbG9yZW0=?= ipsum dolor
  sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt
- ut labore et dolore. =?ISO-2022-JP?B?GyRCO3obKEI=?=
+ ut labore et =?ISO-2022-JP?B?ZG9sb3JlGyRCIUQbKEI=?=
 
