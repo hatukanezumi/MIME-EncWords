@@ -53,7 +53,7 @@ sub decode($$;$) {
     my %opts = map { ($_ => ($obj->{$_} || $Config->{$_})) }
         qw(Detect7bit Mapping);
     $chk = 0 if ref $chk; # coderef not supported.
-    my $repl = (! ref $chk and $chk & 4) ? ($chk & ~4 | 1) : $chk;
+    my $repl = ($chk & 4) ? ($chk & ~4 | 1) : $chk;
 
     local $@;
     my $skip = 0; # for RETURN_ON_ERR
@@ -221,7 +221,7 @@ Encode::MIME::EncWords -- MIME 'B' and 'Q' header encoding (alternative)
     $header = encode('MIME-EncWords', $utf8);
     
     # encode header with another charset:
-    Encode::MIME::EncWords->config(Charset => 'TIS620');
+    Encode::MIME::EncWords->config(Charset => 'GB2312');
     $header = encode('MIME-EncWords', $utf8);
 
 =head1 ABSTRACT
@@ -330,8 +330,8 @@ L<http://rt.cpan.org/Public/Dist/Display.html?Name=MIME-EncWords>.
 
 Consult C<$VERSION> variable.
 
-B<This is experimental release.
-Features might be changed in the near future.>
+B<This is experimental release>.
+Features might be changed in the near future.
 
 Development versions of this package may be found at
 L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>.

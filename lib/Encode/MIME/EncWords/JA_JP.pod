@@ -18,7 +18,7 @@ Encode::MIME::EncWords::JA_JP - MIME の「B」・「Q」ヘッダエンコー�
     $header = encode('MIME-EncWords', $utf8);
     
     # ほかのキャラクタセットでヘッダエンコードする。
-    Encode::MIME::EncWords->config(Charset => 'TIS620');
+    Encode::MIME::EncWords->config(Charset => 'GB2312');
     $header = encode('MIME-EncWords', $utf8);
 
 =head1 ABSTRACT
@@ -132,7 +132,7 @@ L<http://rt.cpan.org/Public/Dist/Display.html?Name=MIME-EncWords>.
 
 C<$VERSION> 変数を参照してほしい。
 
-B<これは実験的なリリースである。仕様は近い将来、変わるかもしれない。>
+B<これは実験的なリリースである>。仕様は近い将来、変わるかもしれない。
 
 このパッケージの開発版が次の場所にある。
 L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>。

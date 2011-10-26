@@ -1,4 +1,11 @@
-2011-06-XX	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+2011-10-26	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.012.4.
+	* Chg: encode_mimewords(): 'B' was advantageous over 'Q' by 4/3 byte
+	  on average...
+	* Updated address of FSF.
+
+2011-06-05	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.012.3.
 	* Fix: encode_mimewords(): inproper handling of Encoding => 'S'.

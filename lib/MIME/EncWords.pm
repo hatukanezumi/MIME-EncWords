@@ -873,14 +873,14 @@ sub encode_mimewords  {
 	} elsif ($Params{Encoding} eq 'A' and ! $b and $q) {
 	    $enc = 'Q';
 	# Otherwise, assuming 'Q', when characters to be encoded are more than
-	# 6th of total, 'B' will win.
+	# 6th of total (plus a little fraction), 'B' will win.
 	# Note: This might give 'Q' so great advantage...
 	} else {
 	    my @no_enc = grep { ! $_->[1] } @triplets;
 	    my $total = length join('', map { $_->[0] } (@no_enc, @s_enc));
 	    my $q = scalar(() = join('', map { $_->[0] } @s_enc) =~
 			   m{[^- !*+/0-9A-Za-z]}g);
-	    if ($total < $q * 6) {
+	    if ($total + 8 < $q * 6) {
 		$enc = 'B';
 	    } else {
 		$enc = 'Q';
@@ -1070,7 +1070,7 @@ sub _clip_unsafe {
     # Seek maximal division point.
     my ($shorter, $longer) = (0, length($ustr));
     while ($shorter < $longer) {
-	my $cur = int(($shorter + $longer + 1) / 2);
+	my $cur = ($shorter + $longer + 1) >> 1;
 	my $enc = substr($ustr, 0, $cur);
 	if (MIME::Charset::USE_ENCODE ne '') {
 	    $enc = $charset->undecode($enc);
