@@ -1,3 +1,10 @@
+2012-09-05	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
+
+	* Release 1.012_5.
+	* Minor Fix: After ASCII words extending over multiple lines,
+	  line length was estimated shorter.  CPAN RT #79399.
+	* Doc: corrected typo.
+
 2011-10-26	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
 	* Release 1.012.4.

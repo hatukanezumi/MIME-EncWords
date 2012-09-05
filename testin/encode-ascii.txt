@@ -1,8 +1,8 @@
 GOOD
 ([["Perl=?: "], ["\x1B\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x1B(B", "ISO-2022-JP"], [" (Pathologically Eclectic Rubbish Lister)"]])
 =?ISO-8859-1?Q?Perl=3D=3F=3A_?= =?ISO-2022-JP?B?GyRCSUJFKkBeQ288ZzVBGyhC?=
- =?ISO-2022-JP?B?GyRCRSpHUUoqPVBOTzRvGyhC?= (Pathologically
- Eclectic Rubbish Lister)
+ =?ISO-2022-JP?B?GyRCRSpHUUoqPVBOTzRvGyhC?= (Pathologically Eclectic Rubbish
+ Lister)
 
 GOOD
 ([["Perl=?: "], ["\x1B\x24BIBE*\x40^Co<g5AE*GQJ*=PNO4o\x1B(B", "ISO-2022-JP"], [" (Pathologically Eclectic Rubbish Lister)"]], Charset => "EUC-JP")
