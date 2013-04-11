@@ -714,8 +714,8 @@ sub encode_mimewords  {
     # unsafe ASCII sequences
     my $UNSAFEASCII = ($maxrestlen <= 1)?
 	qr{(?: =\? )}ox:
-	qr{(?: =\? | [$PRINTABLE]{$Params{MaxLineLen}} )}ox;
-    $UNSAFEASCII = qr{(?: [$DISPNAMESPECIAL] | $UNSAFEASCII )}ox
+	qr{(?: =\? | [$PRINTABLE]{$Params{MaxLineLen}} )}x;
+    $UNSAFEASCII = qr{(?: [$DISPNAMESPECIAL] | $UNSAFEASCII )}x
 	if $Params{Minimal} eq 'DISPNAME';
 
     unless (ref($words) eq "ARRAY") {
