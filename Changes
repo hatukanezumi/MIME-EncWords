@@ -1,6 +1,6 @@
 2013-04-14	Hatuka*nezumi - IKEDA Soji	<hatuka@nezumi.nu>
 
-	* Release 1.013_01.
+	* Release 1.013_02.
 	* Fix: CPAN RT#84295: MaxLineLen fixes to the value set at the first
 	  time.
 	* Imp: encode_mimewords() supports UTF-16, UTF-32 and their flavors.
