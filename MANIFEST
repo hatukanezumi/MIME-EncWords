@@ -14,6 +14,7 @@ t/01decode.t
 t/02encode.t
 t/03Encode-MIME-EncWords.t
 t/04Encode-MIME-EncWords-ISO_2022_JP.t
+t/05encode_utf.t
 t/pod.t
 testin/decode-ascii.txt
 testin/decode-multibyte.txt

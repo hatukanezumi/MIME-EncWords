@@ -167,7 +167,6 @@ C<"STANDARD"> は標準化されている厳密なマッピングを使う。
 
 =back
 
-
 =cut
 
 =item encode_mimeword RAW, [ENCODING], [CHARSET]
@@ -322,7 +321,6 @@ B<**>
 L<MIME::Charset::JA_JP/エラー処理> 参照。
 
 =back
-
 
 =cut
 
