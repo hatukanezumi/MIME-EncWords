@@ -15,7 +15,7 @@ details read following POD documentations:
 
 For japonophones, POD in Japanese language is also included:
 
-    MIME::EncWords::JA_JP - RFC 2047 encoded-word 関連 (改良版)
-    Encode::MIME::EncWords::JA_JP - MIME の「B」・「Q」ヘッダエンコーディング (代替案)
+    POD2::JA::MIME::EncWords - RFC 2047 encoded-word 関連 (改良版)
+    POD2::JA::Encode::MIME::EncWords - MIME の「B」・「Q」ヘッダエンコーディング (代替案)
 
 $$

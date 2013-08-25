@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-MIME::EncWords::JA_JP - RFC 2047 encoded-word 関連 (改良版)
+MIME::EncWords~[ja] - RFC 2047 encoded-word 関連 (改良版)
 
 =head1 SYNOPSIS
 
@@ -131,7 +131,7 @@ B<*>
 ENCODED に引き続く引数は、ハッシュによるオプションの定義とみなす。
 B<**>
 Unicode/マルチバイト文字対応が有効になっていないとき
-(L<MIME::Charset::JA_JP/USE_ENCODE> 参照) は、
+(L<MIME::Charset/USE_ENCODE> 参照) は、
 以下のオプションはなんの効果も持たない。
 
 =over 4
@@ -204,7 +204,7 @@ I<関数>。
 
 B<**>
 RAW は Unicode でもよい。ただし Unicode/マルチバイト対応が有効な場合
-(L<MIME::Charset::JA_JP/USE_ENCODE> 参照)。
+(L<MIME::Charset/USE_ENCODE> 参照)。
 さらに RAW は、L</decode_mimewords>
 が配列コンテクストで返すものへの参照でもよい。
 後の場合は、"Charset" オプション (下記参照) が適宜上書きされる
@@ -237,7 +237,7 @@ B<**>
 RAW 文字列の 7 ビットキャラクタセットを判別しようとする。
 初期値は C<"YES">。
 Unicode/マルチバイト文字対応が有効になっていないとき
-(L<MIME::Charset::JA_JP/USE_ENCODE> 参照) は、
+(L<MIME::Charset/USE_ENCODE> 参照) は、
 このオプションはなんの効果も持たない。
 
 =item Encoding
@@ -246,7 +246,7 @@ Unicode/マルチバイト文字対応が有効になっていないとき
 B<**>
 「特殊」な値も指定できる。C<"a"> は推奨されるエンコーディングを自動選択する
 (キャラクタセットに別のものが推奨されるときはキャラクタセット変換も行う。
-L<MIME::Charset::JA_JP> 参照)。
+L<MIME::Charset|POD2::JA::MIME::Charset> 参照)。
 C<"s"> は C<"q"> と C<"b"> のうち短くなるほうを選ぶ。
 B<Note>:
 B<*>
@@ -283,7 +283,7 @@ C<"EXTENDED"> は拡張マッピングを使う。
 C<"STANDARD"> は標準化されている厳密なマッピングを使う。
 初期値は C<"EXTENDED">。
 Unicode/マルチバイト文字対応が有効になっていないとき
-(L<MIME::Charset::JA_JP/USE_ENCODE> 参照) は、
+(L<MIME::Charset/USE_ENCODE> 参照) は、
 このオプションはなんの効果も持たない。
 
 =item MaxLineLen
@@ -318,7 +318,7 @@ C<"DISPNAME"> はリリース 1.012 で導入された。
 =item Replacement
 B<**>
 
-L<MIME::Charset::JA_JP/エラー処理> 参照。
+L<POD2::JA::MIME::Charset/エラー処理> 参照。
 
 =back
 
@@ -345,7 +345,7 @@ L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>
 
 =head1 SEE ALSO
 
-L<MIME::Charset::JA_JP>,
+L<MIME::Charset|POD2::JA::MIME::Charset>,
 L<MIME::Tools>
 
 =head1 AUTHORS

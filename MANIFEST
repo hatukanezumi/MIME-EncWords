@@ -2,10 +2,10 @@ ARTISTIC
 Changes
 GPL
 lib/Encode/MIME/EncWords.pm
-lib/Encode/MIME/EncWords/JA_JP.pod
 lib/MIME/EncWords.pm
 lib/MIME/EncWords/Defaults.pm.sample
-lib/MIME/EncWords/JA_JP.pod
+lib/POD2/JA/Encode/MIME/EncWords.pod
+lib/POD2/JA/MIME/EncWords.pod
 Makefile.PL
 MANIFEST			This list of files
 META.yml			Module meta-data (added by author)
