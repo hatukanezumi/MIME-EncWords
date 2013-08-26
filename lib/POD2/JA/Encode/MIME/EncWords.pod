@@ -90,7 +90,7 @@ C<MIME-EncWords-ISO_2022_JP> では C<"ISO-2022-JP"> に固定。
 
 =back
 
-オプションの詳細については L<MIME::EncWords|POD2::JA::MIME::EncWords> を参照。
+オプションの詳細については L<MIME::EncWords~[ja]> を参照。
 
 =back
 
@@ -139,7 +139,7 @@ L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>。
 
 =head1 SEE ALSO
 
-L<Encode>, L<Encode::MIME::Header>, L<MIME::EncWords|POD2::JA::MIME::EncWords>.
+L<Encode>, L<Encode::MIME::Header>, L<MIME::EncWords~[ja]>.
 
 RFC 2047 I<MIME (Multipurpose Internet Mail Extensions) Part Three:
 Message Header Extensions for Non-ASCII Text>.

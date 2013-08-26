@@ -246,7 +246,7 @@ Unicode/マルチバイト文字対応が有効になっていないとき
 B<**>
 「特殊」な値も指定できる。C<"a"> は推奨されるエンコーディングを自動選択する
 (キャラクタセットに別のものが推奨されるときはキャラクタセット変換も行う。
-L<MIME::Charset|POD2::JA::MIME::Charset> 参照)。
+L<MIME::Charset~[ja]> 参照)。
 C<"s"> は C<"q"> と C<"b"> のうち短くなるほうを選ぶ。
 B<Note>:
 B<*>
@@ -318,7 +318,7 @@ C<"DISPNAME"> はリリース 1.012 で導入された。
 =item Replacement
 B<**>
 
-L<POD2::JA::MIME::Charset/エラー処理> 参照。
+L<MIME::Charset~[ja]/エラー処理> 参照。
 
 =back
 
@@ -345,7 +345,7 @@ L<http://hatuka.nezumi.nu/repos/MIME-EncWords/>
 
 =head1 SEE ALSO
 
-L<MIME::Charset|POD2::JA::MIME::Charset>,
+L<MIME::Charset~[ja]>,
 L<MIME::Tools>
 
 =head1 AUTHORS
