@@ -21,7 +21,7 @@ provides:
         file:                      lib/Encode/MIME/EncWords.pm
         version:                   0.03
 resources:
-    repository: http://hatuka.nezumi.nu/repos/MIME-EncWords/
+    repository: https://github.com/hatukanezumi/MIME-EncWords.git
 meta-spec:
    version: 1.3
    url: http://module-build.sourceforge.net/META-spec-v1.3.html
