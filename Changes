@@ -1,5 +1,9 @@
 Revision history for Perl module MIME::EncWords
 
+1.014.3 2014-09-27  Hatuka*nezumi - IKEDA Soji  <hatuka@nezumi.nu>
+
+    * Fix: CPAN RT#99160: encode_mimewords() ignores the word "0".
+
 1.014.2 2013-08-26  Hatuka*nezumi - IKEDA Soji  <hatuka@nezumi.nu>
 
     * No new features.

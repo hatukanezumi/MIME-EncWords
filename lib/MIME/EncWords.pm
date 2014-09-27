@@ -131,7 +131,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.014.2';
+$VERSION = '1.014.3';
 
 ### Public Configuration Attributes
 $Config = {
@@ -1063,7 +1063,8 @@ sub _split_ascii {
     foreach my $line (split(/(?:[\t ]*[\r\n]+)+/, $s)) {
         my $spc = '';
 	foreach my $word (split(/([\t ]+)/, $line)) {
-	    next unless scalar(@splitwords) or $word; # skip first garbage
+	    # skip first garbage
+	    next unless scalar(@splitwords) or defined $word;
 	    if ($word =~ /[\t ]/) {
 		$spc = $word;
 		next;
