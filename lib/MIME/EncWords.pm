@@ -751,7 +751,8 @@ sub encode_mimewords  {
 
     unless (ref($words) eq "ARRAY") {
 	# workaround for UTF-16* & UTF-32*: force UTF-8.
-	if ($charsetobj->as_string =~ /$ASCIIINCOMPAT/) {
+	if ($charsetobj->as_string
+	    and $charsetobj->as_string =~ /$ASCIIINCOMPAT/) {
 	    $words = _utf_to_unicode($charsetobj, $words);
 	    $charsetobj = MIME::Charset->new('UTF-8');
 	}
@@ -772,7 +773,8 @@ sub encode_mimewords  {
 
 		# workaround for ``ASCII transformation'' charsets
 		my $u = $w;
-		if ($charsetobj->as_string =~ /$ASCIITRANS/) {
+		if ($charsetobj->as_string
+		    and $charsetobj->as_string =~ /$ASCIITRANS/) {
 		    if (MIME::Charset::USE_ENCODE) {
 			if (is_utf8($w) or $w =~ /$WIDECHAR/) {
 			    $w = $charsetobj->undecode($u);
