@@ -143,7 +143,11 @@ $Config = {
     MaxLineLen => 76,
     Minimal => 'YES',
 };
-eval { require MIME::EncWords::Defaults; };
+eval {
+    local @INC = @INC;
+    pop @INC if $INC[-1] eq '.';
+    require MIME::EncWords::Defaults;
+};
 
 ### Private Constants
 
