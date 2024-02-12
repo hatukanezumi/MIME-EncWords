@@ -131,7 +131,7 @@ if (MIME::Charset::USE_ENCODE) {
 #------------------------------
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
-$VERSION = '1.014.3';
+$VERSION = '1.015.0';
 
 ### Public Configuration Attributes
 $Config = {
@@ -154,7 +154,7 @@ my $UNSAFE = qr{[^\x01-\x20$PRINTABLE]};
 my $WIDECHAR = qr{[^\x00-\xFF]};
 my $ASCIITRANS = qr{^(?:HZ-GB-2312|UTF-7)$}i;
 my $ASCIIINCOMPAT = qr{^UTF-(?:16|32)(?:BE|LE)?$}i;
-my $DISPNAMESPECIAL = "\\x22(),:;<>\\x40\\x5C"; # RFC5322 name-addr specials.
+my $DISPNAMESPECIAL = qr{[()<>\[\]:;@\\,."]}; # RFC5322 name-addr specials.
 
 #------------------------------
 
@@ -746,7 +746,7 @@ sub encode_mimewords  {
     my $UNSAFEASCII = ($maxrestlen <= 1)?
 	qr{(?: =\? )}ox:
 	qr{(?: =\? | [$PRINTABLE]{$Params{MaxLineLen}} )}x;
-    $UNSAFEASCII = qr{(?: [$DISPNAMESPECIAL] | $UNSAFEASCII )}x
+    $UNSAFEASCII = qr{(?: $DISPNAMESPECIAL | $UNSAFEASCII )}x
 	if $Params{Minimal} eq 'DISPNAME';
 
     unless (ref($words) eq "ARRAY") {
