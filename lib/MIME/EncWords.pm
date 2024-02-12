@@ -260,7 +260,7 @@ However, adjacent encoded-words with same charset will be concatenated
 to handle multibyte sequences safely.
 
 B<**>
-Language information defined by RFC2231, section 5 will be additonal
+Language information defined by RFC2231, section 5 will be additional
 third element, if any.
 
 B<*>
